@@ -41,6 +41,7 @@ public class ProductoServiceImpl implements ProductoService {
                 ProductoDTO productoDTO = ProductoDTO.builder()
                         .idProducto(producto.getIdProducto())
                         .nombre(producto.getNombre())
+                        .precio(producto.getPrecio())
                         .descripcion(producto.getNombre())
                         .build();
 
