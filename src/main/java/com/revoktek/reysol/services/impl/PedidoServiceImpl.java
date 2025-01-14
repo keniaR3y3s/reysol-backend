@@ -57,6 +57,9 @@ public class PedidoServiceImpl implements PedidoService {
     @Override
     public List<PedidoDTO> findAllByFilter(FilterPedidoDTO filterPedido) throws ServiceLayerException {
         try {
+
+            filterPedido = applicationUtil.isNull(filterPedido) ? new FilterPedidoDTO() : filterPedido;
+
             log.info("findAllByFiltro.filterPedido : {}", filterPedido);
 
             List<Integer> estatusList = (applicationUtil.isEmptyList(filterPedido.getEstatusList()) ? null : filterPedido.getEstatusList());

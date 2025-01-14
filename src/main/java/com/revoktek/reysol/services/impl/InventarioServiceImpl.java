@@ -81,6 +81,9 @@ public class InventarioServiceImpl implements InventarioService {
     @Override
     public List<InventarioDTO> findAllByFilter(FilterDTO filterDTO) throws ServiceLayerException {
         try {
+
+            filterDTO = applicationUtil.isNull(filterDTO) ? new FilterDTO() : filterDTO;
+
             log.info("findAllByFiltro.filterPedido : {}", filterDTO);
 
             List<Inventario> inventarios = inventarioRepository.findAllByFilter(

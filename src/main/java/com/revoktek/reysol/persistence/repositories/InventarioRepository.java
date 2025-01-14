@@ -23,7 +23,7 @@ public interface InventarioRepository extends JpaRepository<Inventario, Long> {
             LEFT JOIN FETCH producto.unidadMedida unidadMedida
             WHERE
                 ( (:fechaInicio IS NULL OR :fechaFin IS NULL) OR (inventario.fechaModificacion BETWEEN :fechaInicio AND :fechaFin) )
-                OR
+                AND
                 (:busqueda IS NULL OR producto.nombre ILIKE CONCAT('%', :busqueda, '%'))
             ORDER BY inventario.fechaModificacion DESC
             """)

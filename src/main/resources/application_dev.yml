@@ -5,9 +5,11 @@ spring:
     resources:
       add-mappings: false
   datasource:
-    url: jdbc:mysql://localhost:3306/reysol?useSSL=false
-    username: mediuser
-    password: Medi2022
+    url: jdbc:mysql://localhost:3306/carniceria?useSSL=false
+    username: root
+    password: root
+       #username: reysolza_client
+  # password: R00t-Password-client
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
@@ -15,11 +17,14 @@ spring:
     show-sql: true
     properties:
       hibernate.dialect: org.hibernate.dialect.MySQLDialect
-
+#server:
+#  servlet:
+#    context-path: /reysol-api/
 
 application:
   security:
     jwt:
+      #      secret-key: odfsfdsfdsfdsfds
       secret-key: oEhDmMMbHRWo2ZoDcnf8tJue5/i1SjljkGliwweRuC4=
       expiration: 99999999999
       refresh-token:

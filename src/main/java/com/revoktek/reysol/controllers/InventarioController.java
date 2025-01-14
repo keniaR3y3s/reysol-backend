@@ -27,7 +27,7 @@ public class InventarioController {
     private InventarioService inventarioService;
 
     @PostMapping(InventarioPath.FIND_ALL_BY_FILTER)
-    public ResponseEntity<?> findAllByFilter(@RequestBody FilterDTO filterDTO) throws ServiceLayerException {
+    public ResponseEntity<?> findAllByFilter(@RequestBody(required = false) FilterDTO filterDTO) throws ServiceLayerException {
         return ResponseEntity.ok(inventarioService.findAllByFilter(filterDTO));
     }
 

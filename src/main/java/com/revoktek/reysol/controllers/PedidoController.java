@@ -28,7 +28,7 @@ public class PedidoController {
     private PedidoService pedidoService;
 
     @PostMapping(PedidoPath.FIND_ALL_BY_FILTER)
-    public ResponseEntity<?> findAllByFilter(@RequestBody FilterPedidoDTO filterPedido) throws ServiceLayerException {
+    public ResponseEntity<?> findAllByFilter(@RequestBody(required = false) FilterPedidoDTO filterPedido) throws ServiceLayerException {
         return ResponseEntity.ok(pedidoService.findAllByFilter(filterPedido));
     }
 

@@ -29,7 +29,7 @@ public class EmpleadoController {
         return ResponseEntity.ok(empleadoService.findAllByRol(idRol));
     }
     @GetMapping(EmpleadoPath.FIND_ALL_BY_FILTER)
-    public ResponseEntity<?> findAllByFilter(@RequestParam String busqueda) throws ServiceLayerException {
+    public ResponseEntity<?> findAllByFilter(@RequestParam(required = false) String busqueda) throws ServiceLayerException {
         return ResponseEntity.ok(empleadoService.findAllByFilter(busqueda));
     }
     @GetMapping(EmpleadoPath.FIND_BY_ID)
