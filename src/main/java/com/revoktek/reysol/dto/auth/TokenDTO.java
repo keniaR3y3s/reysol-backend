@@ -2,12 +2,15 @@ package com.revoktek.reysol.dto.auth;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.revoktek.reysol.dto.RolDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -26,5 +29,6 @@ public class TokenDTO {
     private Long expirationTime;
 
     private Long idEmpleado;
+    private List<RolDTO> roles;
 
 }
