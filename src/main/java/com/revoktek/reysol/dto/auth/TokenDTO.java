@@ -27,7 +27,6 @@ public class TokenDTO {
     private String refreshToken;
     @JsonProperty("expiration_time")
     private Long expirationTime;
-
     private Long idEmpleado;
     private List<RolDTO> roles;
 
