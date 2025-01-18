@@ -76,7 +76,7 @@ public class ClienteServiceImpl implements ClienteService {
     public ClienteDTO findById(Long idCliente) throws ServiceLayerException {
         try {
             Cliente cliente = clienteRepository.findByIdCliente(idCliente);
-            if (applicationUtil.nonNull(cliente)) {
+            if (applicationUtil.isNull(cliente)) {
                 throw new ServiceLayerException("Cliente no encontrado.");
             }
 

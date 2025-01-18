@@ -5,6 +5,7 @@ import com.revoktek.reysol.core.exceptions.ServiceLayerException;
 import com.revoktek.reysol.core.i18n.MessageProvider;
 import com.revoktek.reysol.core.utils.ApplicationUtil;
 import com.revoktek.reysol.dto.ClienteDTO;
+import com.revoktek.reysol.dto.ContactoDTO;
 import com.revoktek.reysol.dto.EmpleadoDTO;
 import com.revoktek.reysol.dto.RolDTO;
 import com.revoktek.reysol.dto.UsuarioDTO;
@@ -74,7 +75,7 @@ public class EmpleadoServiceImpl implements EmpleadoService {
             usuarioDTO.setRoles(new ArrayList<>());
 
             List<UsuarioRol> usuarioRolList = usuarioRolRepository.findAllByUsuario(usuario);
-            for(UsuarioRol usuarioRol : usuarioRolList){
+            for (UsuarioRol usuarioRol : usuarioRolList) {
                 RolDTO rolDTO = new RolDTO();
                 rolDTO.setIdRol(usuarioRol.getRol().getIdRol());
                 rolDTO.setNombre(usuarioRol.getRol().getNombre());
@@ -84,7 +85,12 @@ public class EmpleadoServiceImpl implements EmpleadoService {
 
             empleadoDTO.setUsuario(usuarioDTO);
 
-
+            empleadoDTO.setContacto(new ContactoDTO());
+            Contacto contacto = contactoRepository.findByEmpleado(empleado);
+            if (applicationUtil.nonNull(contacto)) {
+                empleadoDTO.getContacto().setIdContacto(contacto.getIdContacto());
+                empleadoDTO.getContacto().setTelefono(contacto.getTelefono());
+            }
 
 
             return empleadoDTO;
@@ -215,9 +221,12 @@ public class EmpleadoServiceImpl implements EmpleadoService {
     public void update(EmpleadoDTO empleadoDTO) throws ServiceLayerException {
         try {
 
+            Empleado empleado = empleadoRepository.findByIdEmpleado(empleadoDTO.getIdEmpleado());
+            Usuario usuario = empleado.getUsuario();
+
             UsuarioDTO usuarioDTO = empleadoDTO.getUsuario();
 
-            Optional<Usuario> optionalUsuario = usuarioRepository.findByUsuarioAndIdUsuarioNot(usuarioDTO.getUsuario(), usuarioDTO.getIdUsuario());
+            Optional<Usuario> optionalUsuario = usuarioRepository.findByUsuarioAndIdUsuarioNot(usuarioDTO.getUsuario(), usuario.getIdUsuario());
             if (optionalUsuario.isPresent()) {
                 throw new ServiceLayerException("Usuario previamente registrado");
             }
@@ -226,13 +235,11 @@ public class EmpleadoServiceImpl implements EmpleadoService {
                 throw new ServiceLayerException("Ingrese roles para el usuario");
             }
 
-            Empleado empleado = empleadoRepository.findByIdEmpleado(empleadoDTO.getIdEmpleado());
             empleado.setNombre(empleadoDTO.getNombre());
             empleado.setPrimerApellido(empleadoDTO.getPrimerApellido());
             empleado.setSegundoApellido(empleadoDTO.getSegundoApellido());
             empleadoRepository.save(empleado);
 
-            Usuario usuario = empleado.getUsuario();
             usuario.setUsuario(usuarioDTO.getUsuario());
             if (applicationUtil.nonEmpty(usuarioDTO.getContrasena())) {
                 usuario.setContrasena(passwordEncoder.encode(usuarioDTO.getContrasena()));
@@ -255,7 +262,7 @@ public class EmpleadoServiceImpl implements EmpleadoService {
             usuarioRolRepository.saveAll(usuarioRoles);
 
             Contacto contacto = contactoRepository.findByEmpleado(empleado);
-            if(applicationUtil.isNull(contacto)){
+            if (applicationUtil.isNull(contacto)) {
                 contacto = new Contacto();
             }
             contacto.setEmpleado(empleado);
