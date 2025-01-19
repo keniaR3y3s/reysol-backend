@@ -24,7 +24,7 @@ public class UsuarioRolId implements Serializable {
     private Long usuarioId;
 
     @Column(name = "rol_id")
-    private Long rolId;
+    private Integer rolId;
 
     @Override
     public boolean equals(Object o) {

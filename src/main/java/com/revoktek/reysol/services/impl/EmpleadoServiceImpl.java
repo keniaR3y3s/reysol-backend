@@ -17,6 +17,7 @@ import com.revoktek.reysol.persistence.entities.Pedido;
 import com.revoktek.reysol.persistence.entities.Rol;
 import com.revoktek.reysol.persistence.entities.Usuario;
 import com.revoktek.reysol.persistence.entities.UsuarioRol;
+import com.revoktek.reysol.persistence.entities.UsuarioRolId;
 import com.revoktek.reysol.persistence.entities.UsuarioRolRepository;
 import com.revoktek.reysol.persistence.repositories.ContactoRepository;
 import com.revoktek.reysol.persistence.repositories.EmpleadoRepository;
@@ -200,6 +201,10 @@ public class EmpleadoServiceImpl implements EmpleadoService {
                 UsuarioRol usuarioRol = new UsuarioRol();
                 usuarioRol.setUsuario(usuario);
                 usuarioRol.setRol(new Rol(rolDTO.getIdRol()));
+                UsuarioRolId usuarioRolId = new UsuarioRolId();
+                usuarioRolId.setRolId(usuarioRolId.getRolId());
+                usuarioRolId.setUsuarioId(usuarioRolId.getUsuarioId());
+                usuarioRol.setId(usuarioRolId);
                 usuarioRoles.add(usuarioRol);
             }
             usuarioRolRepository.saveAll(usuarioRoles);
