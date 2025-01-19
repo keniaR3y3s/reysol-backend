@@ -9,6 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
@@ -58,6 +59,12 @@ public class Cliente {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tipo_cliente_id")
     private TipoCliente tipoCliente;
+
+    @OneToOne(mappedBy = "cliente", fetch = FetchType.LAZY)
+    private Domicilio domicilio;
+
+    @OneToOne(mappedBy = "cliente", fetch = FetchType.LAZY)
+    private Contacto contacto;
 
     public Cliente(Long idCliente) {
         this.idCliente = idCliente;

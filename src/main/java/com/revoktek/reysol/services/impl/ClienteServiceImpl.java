@@ -48,8 +48,8 @@ public class ClienteServiceImpl implements ClienteService {
     public List<ClienteDTO> findAllByFilter(String busqueda) throws ServiceLayerException {
         try {
 
-            Integer idTipoCliente = TipoClienteEnum.REGULAR.getValue();
-            List<Cliente> clientes = clienteRepository.findAllByFilter(busqueda, idTipoCliente);
+//            Integer idTipoCliente = TipoClienteEnum.REGULAR.getValue();
+            List<Cliente> clientes = clienteRepository.findAllByFilter(busqueda);
 
             if (applicationUtil.isEmptyList(clientes)) {
                 log.info("Sin elementos encontrados.");
@@ -58,18 +58,57 @@ public class ClienteServiceImpl implements ClienteService {
 
             log.info("{} elementos encontrados.", clientes.size());
 
-            return clientes.stream().map(cliente -> ClienteDTO.builder()
-                    .idCliente(cliente.getIdCliente())
-                    .alias(cliente.getAlias())
-                    .nombre(cliente.getNombre())
-                    .primerApellido(cliente.getPrimerApellido())
-                    .segundoApellido(cliente.getSegundoApellido())
-                    .fechaRegistro(cliente.getFechaRegistro())
-                    .build()).toList();
+            return clientes.stream().map(cliente -> getClienteDTO(cliente, false)).toList();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new ServiceLayerException(e);
         }
+    }
+
+    private ClienteDTO getClienteDTO(Cliente cliente, boolean finRepository) {
+        ClienteDTO clienteDTO = new ClienteDTO();
+        clienteDTO.setIdCliente(cliente.getIdCliente());
+        clienteDTO.setAlias(cliente.getAlias());
+        clienteDTO.setNombre(cliente.getNombre());
+        clienteDTO.setPrimerApellido(cliente.getPrimerApellido());
+        clienteDTO.setSegundoApellido(cliente.getSegundoApellido());
+        clienteDTO.setFechaRegistro(cliente.getFechaRegistro());
+        clienteDTO.setEstatus(cliente.getEstatus());
+
+
+        Ruta ruta = cliente.getRuta();
+        if (applicationUtil.nonNull(ruta)) {
+            clienteDTO.setRuta(new RutaDTO());
+            clienteDTO.getRuta().setIdRuta(ruta.getIdRuta());
+            clienteDTO.getRuta().setNombre(ruta.getNombre());
+        }
+
+        TipoCliente tipoCliente = cliente.getTipoCliente();
+        if (applicationUtil.nonNull(tipoCliente)) {
+            clienteDTO.setTipoCliente(new TipoClienteDTO());
+            clienteDTO.getTipoCliente().setIdTipoCliente(tipoCliente.getIdTipoCliente());
+            clienteDTO.getTipoCliente().setNombre(tipoCliente.getNombre());
+        }
+
+        Contacto contacto = finRepository ? contactoRepository.findByCliente(cliente) : cliente.getContacto();
+        if (applicationUtil.nonNull(contacto)) {
+            clienteDTO.setContacto(new ContactoDTO());
+            clienteDTO.getContacto().setIdContacto(contacto.getIdContacto());
+            clienteDTO.getContacto().setTelefono(contacto.getTelefono());
+        }
+
+        Domicilio domicilio = finRepository ? domicilioRepository.findByCliente(cliente) : cliente.getDomicilio();
+        if (applicationUtil.nonNull(domicilio)) {
+            clienteDTO.setDomicilio(new DomicilioDTO());
+            clienteDTO.getDomicilio().setIdDomicilio(domicilio.getIdDomicilio());
+            clienteDTO.getDomicilio().setCalle(domicilio.getCalle());
+            clienteDTO.getDomicilio().setNumInt(domicilio.getNumInt());
+            clienteDTO.getDomicilio().setNumExt(domicilio.getNumExt());
+            clienteDTO.getDomicilio().setColonia(domicilio.getColonia());
+            clienteDTO.getDomicilio().setMunicipio(domicilio.getMunicipio());
+            clienteDTO.getDomicilio().setEstado(domicilio.getEstado());
+        }
+        return clienteDTO;
     }
 
     @Override
@@ -80,51 +119,7 @@ public class ClienteServiceImpl implements ClienteService {
                 throw new ServiceLayerException("Cliente no encontrado.");
             }
 
-            ClienteDTO clienteDTO = new ClienteDTO();
-            clienteDTO.setIdCliente(cliente.getIdCliente());
-            clienteDTO.setAlias(cliente.getAlias());
-            clienteDTO.setNombre(cliente.getNombre());
-            clienteDTO.setPrimerApellido(cliente.getPrimerApellido());
-            clienteDTO.setSegundoApellido(cliente.getSegundoApellido());
-            clienteDTO.setFechaRegistro(cliente.getFechaRegistro());
-            clienteDTO.setEstatus(cliente.getEstatus());
-
-            clienteDTO.setTipoCliente(new TipoClienteDTO());
-            clienteDTO.setDomicilio(new DomicilioDTO());
-            clienteDTO.setContacto(new ContactoDTO());
-            clienteDTO.setRuta(new RutaDTO());
-
-
-            Ruta ruta = cliente.getRuta();
-            if (applicationUtil.nonNull(ruta)) {
-                clienteDTO.getRuta().setIdRuta(ruta.getIdRuta());
-                clienteDTO.getRuta().setNombre(ruta.getNombre());
-            }
-
-            TipoCliente tipoCliente = cliente.getTipoCliente();
-            if (applicationUtil.nonNull(tipoCliente)) {
-                clienteDTO.getTipoCliente().setIdTipoCliente(tipoCliente.getIdTipoCliente());
-                clienteDTO.getTipoCliente().setNombre(tipoCliente.getNombre());
-            }
-
-            Contacto contacto = contactoRepository.findByCliente(cliente);
-            if (applicationUtil.nonNull(contacto)) {
-                clienteDTO.getContacto().setIdContacto(contacto.getIdContacto());
-                clienteDTO.getContacto().setTelefono(contacto.getTelefono());
-            }
-
-            Domicilio domicilio = domicilioRepository.findByCliente(cliente);
-            if (applicationUtil.nonNull(domicilio)) {
-                clienteDTO.getDomicilio().setIdDomicilio(domicilio.getIdDomicilio());
-                clienteDTO.getDomicilio().setCalle(domicilio.getCalle());
-                clienteDTO.getDomicilio().setNumInt(domicilio.getNumInt());
-                clienteDTO.getDomicilio().setNumExt(domicilio.getNumExt());
-                clienteDTO.getDomicilio().setColonia(domicilio.getColonia());
-                clienteDTO.getDomicilio().setMunicipio(domicilio.getMunicipio());
-                clienteDTO.getDomicilio().setEstado(domicilio.getEstado());
-            }
-
-            return clienteDTO;
+            return getClienteDTO(cliente, true);
 
         } catch (Exception e) {
             log.error(e.getMessage(), e);

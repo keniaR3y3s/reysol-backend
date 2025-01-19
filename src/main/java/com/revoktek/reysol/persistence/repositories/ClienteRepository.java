@@ -18,11 +18,16 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
     @Query("""
                 SELECT e
                 FROM Cliente e
-                INNER JOIN e.tipoCliente tipoCliente
-                WHERE tipoCliente.idTipoCliente = :idTipoCliente AND ( (:busqueda IS NULL) OR (
+                INNER JOIN FETCH e.tipoCliente tipoCliente
+                LEFT JOIN FETCH e.ruta ruta
+                LEFT JOIN FETCH e.contacto contacto
+                LEFT JOIN FETCH e.domicilio domicilio
+                WHERE ( (:busqueda IS NULL) OR (
                    CONCAT(e.nombre, ' ', e.primerApellido, ' ', COALESCE(e.segundoApellido, ''))
                    ILIKE CONCAT('%', :busqueda, '%')
                  ) OR ( e.alias  ILIKE CONCAT('%', :busqueda, '%')  ) )
                 ORDER BY e.nombre ASC
             """)
-    List<Cliente> findAllByFilter(@Param("busqueda") String busqueda, @Param("idTipoCliente") Integer idTipoCliente);}
+    List<Cliente> findAllByFilter(@Param("busqueda") String busqueda);
+
+}
