@@ -32,6 +32,7 @@ import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 
 @Slf4j
@@ -231,10 +232,17 @@ public class InventarioServiceImpl implements InventarioService {
             Long idProducto = productoDTO.getIdProducto();
 
             Integer idTipoInventario = TipoInventarioEnum.FRESCO.getValue();
-            if (applicationUtil.nonNull(inventarioDTO.getTipoInventario())
-                    && applicationUtil.nonNull(inventarioDTO.getTipoInventario().getIdTipoInventario())
+            if (applicationUtil.isNull(inventarioDTO.getTipoInventario())
+                    && applicationUtil.isNull(inventarioDTO.getTipoInventario().getIdTipoInventario())
             ) {
                 idTipoInventario = inventarioDTO.getTipoInventario().getIdTipoInventario();
+            }
+
+            Integer idTipoMovimiento = TipoMovimientoEnum.ENTRADA.getValue();
+            if (applicationUtil.isNull(inventarioDTO.getTipoMovimiento())
+                    || applicationUtil.isNull(inventarioDTO.getTipoMovimiento().getIdTipoMovimiento())
+            ) {
+                idTipoMovimiento = inventarioDTO.getTipoMovimiento().getIdTipoMovimiento();
             }
 
             Empleado empleado = jwtService.getEmpleado(token);
@@ -244,23 +252,46 @@ public class InventarioServiceImpl implements InventarioService {
                     idTipoInventario,
                     empleado.getIdEmpleado()
             );
+            if (applicationUtil.isNull(inventarioSavedDTO)) {
+                inventarioSavedDTO = this.findOrSaveByProductoAndTipoInventario(
+                        idProducto,
+                        (Objects.equals(idTipoInventario, TipoInventarioEnum.FRESCO.getValue()) ?
+                                TipoInventarioEnum.REFRIGERADO.getValue() : TipoInventarioEnum.FRESCO.getValue()),
+                        empleado.getIdEmpleado()
+                );
+            }
 
             Inventario inventario = inventarioRepository.findByIdInventario(inventarioSavedDTO.getIdInventario());
             inventario.setFechaModificacion(now);
-            inventario.setCantidad(inventario.getCantidad().add(inventarioDTO.getCantidad()));
-            inventario.setPeso(inventario.getCantidad().add(inventarioDTO.getPeso()));
-            inventarioRepository.save(inventario);
+            if (Objects.equals(idTipoMovimiento, TipoMovimientoEnum.ENTRADA.getValue())) {
+                inventario.setCantidad(inventario.getCantidad().add(inventarioDTO.getCantidad()));
+                inventario.setPeso(inventario.getCantidad().add(inventarioDTO.getPeso()));
+                inventarioRepository.save(inventario);
 
 
-            InventarioHistorial inventarioHistorial = new InventarioHistorial();
-            inventarioHistorial.setInventario(inventario);
-            inventarioHistorial.setCantidad(inventarioDTO.getCantidad());
-            inventarioHistorial.setPeso(inventarioDTO.getPeso());
-            inventarioHistorial.setFechaRegistro(now);
-            inventarioHistorial.setEmpleado(empleado);
-            inventarioHistorial.setTipoMovimiento(new TipoMovimiento(inventarioDTO.getTipoInventario().getIdTipoInventario()));
+                InventarioHistorial inventarioHistorial = new InventarioHistorial();
+                inventarioHistorial.setInventario(inventario);
+                inventarioHistorial.setCantidad(inventarioDTO.getCantidad());
+                inventarioHistorial.setPeso(inventarioDTO.getPeso());
+                inventarioHistorial.setFechaRegistro(now);
+                inventarioHistorial.setEmpleado(empleado);
+                inventarioHistorial.setTipoMovimiento(new TipoMovimiento(idTipoMovimiento));
+                inventarioHistorialRepository.save(inventarioHistorial);
+            } else {
+                inventario.setCantidad(inventario.getCantidad().subtract(inventarioDTO.getCantidad()));
+                inventario.setPeso(inventario.getCantidad().subtract(inventarioDTO.getPeso()));
+                inventarioRepository.save(inventario);
 
-            inventarioHistorialRepository.save(inventarioHistorial);
+                InventarioHistorial inventarioHistorial = new InventarioHistorial();
+                inventarioHistorial.setInventario(inventario);
+                inventarioHistorial.setCantidad(inventarioDTO.getCantidad());
+                inventarioHistorial.setPeso(inventarioDTO.getPeso());
+                inventarioHistorial.setFechaRegistro(now);
+                inventarioHistorial.setEmpleado(empleado);
+                inventarioHistorial.setTipoMovimiento(new TipoMovimiento(idTipoMovimiento));
+
+                inventarioHistorialRepository.save(inventarioHistorial);
+            }
 
 
         } catch (Exception e) {

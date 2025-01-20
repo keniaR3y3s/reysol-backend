@@ -19,5 +19,6 @@ public class InventarioDTO {
     private Date fechaRegistro;
     private ProductoDTO producto;
     private TipoInventarioDTO tipoInventario;
+    private TipoMovimientoDTO tipoMovimiento;
     private Date fechaModificacion;
 }
