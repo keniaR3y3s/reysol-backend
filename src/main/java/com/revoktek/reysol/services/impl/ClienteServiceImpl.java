@@ -145,6 +145,7 @@ public class ClienteServiceImpl implements ClienteService {
             TipoCliente tipoCliente = new TipoCliente(TipoClienteEnum.REGULAR.getValue());
 
             cliente = mapperUtil.parseBetweenObject(Cliente.class, clienteDTO);
+            cliente.setIdCliente(null);
             cliente.setEstatus(Boolean.TRUE);
             cliente.setFechaRegistro(new Date());
             cliente.setTipoCliente(tipoCliente);
@@ -157,6 +158,7 @@ public class ClienteServiceImpl implements ClienteService {
             if (applicationUtil.nonNull(clienteDTO.getContacto())
                     && applicationUtil.nonEmpty(clienteDTO.getContacto().getTelefono())) {
                 Contacto contacto = new Contacto();
+                contacto.setIdContacto(null);
                 contacto.setTelefono(clienteDTO.getContacto().getTelefono());
                 contacto.setCliente(cliente);
                 contactoRepository.save(contacto);
@@ -164,6 +166,7 @@ public class ClienteServiceImpl implements ClienteService {
             if (applicationUtil.nonNull(clienteDTO.getDomicilio())
                     && applicationUtil.nonEmpty(clienteDTO.getDomicilio().getCalle())) {
                 Domicilio domicilio = mapperUtil.parseBetweenObject(Domicilio.class, clienteDTO.getDomicilio());
+                domicilio.setIdDomicilio(null);
                 domicilio.setCliente(cliente);
                 domicilioRepository.save(domicilio);
             }
