@@ -149,6 +149,10 @@ public class ClienteServiceImpl implements ClienteService {
             cliente.setEstatus(Boolean.TRUE);
             cliente.setFechaRegistro(new Date());
             cliente.setTipoCliente(tipoCliente);
+
+            cliente.setContacto(null);
+            cliente.setDomicilio(null);
+
             if (applicationUtil.nonNull(clienteDTO.getRuta())
                     && applicationUtil.nonNull(clienteDTO.getRuta().getIdRuta())) {
                 cliente.setRuta(new Ruta(clienteDTO.getRuta().getIdRuta()));
