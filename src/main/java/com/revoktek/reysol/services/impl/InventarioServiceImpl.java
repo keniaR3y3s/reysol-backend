@@ -232,15 +232,15 @@ public class InventarioServiceImpl implements InventarioService {
             Long idProducto = productoDTO.getIdProducto();
 
             Integer idTipoInventario = TipoInventarioEnum.FRESCO.getValue();
-            if (applicationUtil.isNull(inventarioDTO.getTipoInventario())
-                    || applicationUtil.isNull(inventarioDTO.getTipoInventario().getIdTipoInventario())
+            if (applicationUtil.nonNull(inventarioDTO.getTipoInventario())
+                    && applicationUtil.nonNull(inventarioDTO.getTipoInventario().getIdTipoInventario())
             ) {
                 idTipoInventario = inventarioDTO.getTipoInventario().getIdTipoInventario();
             }
 
             Integer idTipoMovimiento = TipoMovimientoEnum.ENTRADA.getValue();
-            if (applicationUtil.isNull(inventarioDTO.getTipoMovimiento())
-                    || applicationUtil.isNull(inventarioDTO.getTipoMovimiento().getIdTipoMovimiento())
+            if (applicationUtil.nonNull(inventarioDTO.getTipoMovimiento())
+                    && applicationUtil.nonNull(inventarioDTO.getTipoMovimiento().getIdTipoMovimiento())
             ) {
                 idTipoMovimiento = inventarioDTO.getTipoMovimiento().getIdTipoMovimiento();
             }
