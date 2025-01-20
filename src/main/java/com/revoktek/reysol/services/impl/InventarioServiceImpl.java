@@ -233,7 +233,7 @@ public class InventarioServiceImpl implements InventarioService {
 
             Integer idTipoInventario = TipoInventarioEnum.FRESCO.getValue();
             if (applicationUtil.isNull(inventarioDTO.getTipoInventario())
-                    && applicationUtil.isNull(inventarioDTO.getTipoInventario().getIdTipoInventario())
+                    || applicationUtil.isNull(inventarioDTO.getTipoInventario().getIdTipoInventario())
             ) {
                 idTipoInventario = inventarioDTO.getTipoInventario().getIdTipoInventario();
             }
