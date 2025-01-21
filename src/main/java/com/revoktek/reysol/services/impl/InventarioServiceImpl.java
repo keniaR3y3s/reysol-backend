@@ -232,18 +232,18 @@ public class InventarioServiceImpl implements InventarioService {
             Long idProducto = productoDTO.getIdProducto();
 
             Integer idTipoInventario = TipoInventarioEnum.FRESCO.getValue();
-            if (applicationUtil.nonNull(inventarioDTO.getTipoInventario())
+            /*if (applicationUtil.nonNull(inventarioDTO.getTipoInventario())
                     && applicationUtil.nonNull(inventarioDTO.getTipoInventario().getIdTipoInventario())
             ) {
                 idTipoInventario = inventarioDTO.getTipoInventario().getIdTipoInventario();
-            }
+            }*/
 
             Integer idTipoMovimiento = TipoMovimientoEnum.ENTRADA.getValue();
-            if (applicationUtil.nonNull(inventarioDTO.getTipoMovimiento())
+            /*if (applicationUtil.nonNull(inventarioDTO.getTipoMovimiento())
                     && applicationUtil.nonNull(inventarioDTO.getTipoMovimiento().getIdTipoMovimiento())
             ) {
                 idTipoMovimiento = inventarioDTO.getTipoMovimiento().getIdTipoMovimiento();
-            }
+            }*/
 
             Empleado empleado = jwtService.getEmpleado(token);
 
@@ -252,14 +252,13 @@ public class InventarioServiceImpl implements InventarioService {
                     idTipoInventario,
                     empleado.getIdEmpleado()
             );
-            if (applicationUtil.isNull(inventarioSavedDTO)) {
+            /*if (applicationUtil.isNull(inventarioSavedDTO)) {
                 inventarioSavedDTO = this.findOrSaveByProductoAndTipoInventario(
                         idProducto,
-                        (Objects.equals(idTipoInventario, TipoInventarioEnum.FRESCO.getValue()) ?
-                                TipoInventarioEnum.REFRIGERADO.getValue() : TipoInventarioEnum.FRESCO.getValue()),
+                        idTipoInventario,
                         empleado.getIdEmpleado()
                 );
-            }
+            }*/
 
             Inventario inventario = inventarioRepository.findByIdInventario(inventarioSavedDTO.getIdInventario());
             inventario.setFechaModificacion(now);

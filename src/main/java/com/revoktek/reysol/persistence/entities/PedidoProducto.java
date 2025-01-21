@@ -31,18 +31,26 @@ public class PedidoProducto {
     @Column(name = "precio")
     private BigDecimal precio;
 
+    @Column(name = "subtotal")
+    private BigDecimal subtotal;
+
+    @Column(name = "cantidad_frias")
+    private BigDecimal cantidadFrias;
 
     @Column(name = "cantidad_solicitada")
     private BigDecimal cantidadSolicitada;
 
+    @Column(name = "peso_solicitado")
+    private BigDecimal pesoSolicitado;
+
     @Column(name = "cantidad_despachada")
     private BigDecimal cantidadDespachada;
 
-    @Column(name = "diferencia")
-    private BigDecimal diferencia;
-
     @Column(name = "peso_despachado")
     private BigDecimal pesoDespachado;
+
+    @Column(name = "cantidad_entregada")
+    private BigDecimal cantidadEntregada;
 
     @Column(name = "peso_entregado")
     private BigDecimal pesoEntregado;

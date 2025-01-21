@@ -16,9 +16,9 @@ public interface PedidoProductoRepository extends JpaRepository<PedidoProducto, 
             SELECT
                 pedidoProducto
             FROM PedidoProducto pedidoProducto
-            INNER JOIN FETCH pedidoProducto.inventario inventario
-            INNER JOIN FETCH inventario.producto producto
+            INNER JOIN FETCH pedidoProducto.producto producto
             INNER JOIN FETCH producto.unidadMedida unidadMedida
+            LEFT JOIN FETCH pedidoProducto.inventario inventario
             WHERE pedidoProducto.pedido.idPedido = :idPedido
             ORDER BY producto.nombre ASC
             """)

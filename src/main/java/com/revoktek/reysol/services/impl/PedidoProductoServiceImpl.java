@@ -103,7 +103,6 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
                         .precio(pedidoProducto.getPrecio())
                         .cantidadSolicitada(pedidoProducto.getCantidadSolicitada())
                         .cantidadDespachada(pedidoProducto.getCantidadDespachada())
-                        .diferencia(pedidoProducto.getDiferencia())
                         .pesoDespachado(pedidoProducto.getPesoDespachado())
                         .pesoEntregado(pedidoProducto.getPesoEntregado())
                         .producto(productoDTO)
@@ -210,7 +209,6 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
                 pedidoProducto.setPrecio(producto.getPrecio());
                 pedidoProducto.setCantidadSolicitada(productoDTO.getCantidadDespachada());
                 pedidoProducto.setCantidadDespachada(productoDTO.getCantidadDespachada());
-                pedidoProducto.setDiferencia(BigDecimal.ZERO);
                 pedidoProducto.setPesoDespachado(productoDTO.getPesoDespachado());
                 pedidoProducto.setPesoEntregado(productoDTO.getPesoDespachado());
                 pedidoProducto.setPedido(pedido);
@@ -320,10 +318,13 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
 
                 PedidoProducto pedidoProducto = new PedidoProducto();
                 pedidoProducto.setPrecio(producto.getPrecio());
+                pedidoProducto.setSubtotal(BigDecimal.ZERO);
+                pedidoProducto.setCantidadFrias(productoDTO.getCantidadFrias());
                 pedidoProducto.setCantidadSolicitada(productoDTO.getCantidadSolicitada());
+                pedidoProducto.setPesoSolicitado(productoDTO.getPesoSolicitado());
                 pedidoProducto.setCantidadDespachada(BigDecimal.ZERO);
-                pedidoProducto.setDiferencia(BigDecimal.ZERO);
                 pedidoProducto.setPesoDespachado(BigDecimal.ZERO);
+                pedidoProducto.setCantidadEntregada(BigDecimal.ZERO);
                 pedidoProducto.setPesoEntregado(BigDecimal.ZERO);
                 pedidoProducto.setPedido(pedido);
                 pedidoProducto.setProducto(producto);
@@ -334,10 +335,22 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
                 if (applicationUtil.nonEmptyList(precios) && applicationUtil.isNull(precioCliente)) {
                     pedidoProducto.setPrecioHistorial(precios.get(0));
                 }
+
+                BigDecimal precio = pedidoProducto.getPrecio();
+                if (applicationUtil.nonNull(pedidoProducto.getCantidadSolicitada())
+                        && pedidoProducto.getCantidadSolicitada().compareTo(BigDecimal.ZERO) > 0
+                ) {
+                    pedidoProducto.setSubtotal(precio.multiply(pedidoProducto.getCantidadSolicitada()));
+                } else if (applicationUtil.nonNull(pedidoProducto.getPesoSolicitado())
+                        && pedidoProducto.getPesoSolicitado().compareTo(BigDecimal.ZERO) > 0
+                ) {
+                    pedidoProducto.setSubtotal(precio.multiply(pedidoProducto.getPesoSolicitado()));
+                }
+
                 pedidoProductoRepository.save(pedidoProducto);
 
-                BigDecimal subtotal = pedidoProducto.getPrecio().multiply(pedidoProducto.getCantidadDespachada());
-                total = total.add(subtotal);
+
+                total = total.add(pedidoProducto.getSubtotal());
 
             }
 
