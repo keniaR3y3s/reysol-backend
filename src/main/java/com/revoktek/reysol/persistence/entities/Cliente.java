@@ -41,6 +41,10 @@ public class Cliente {
     @Column(name = "estatus")
     private Integer estatus;
 
+
+
+
+    
     
     public Boolean getEstatus() {
         return this.estatus != null && this.estatus == 1;
