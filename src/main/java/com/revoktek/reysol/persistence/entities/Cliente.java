@@ -1,25 +1,23 @@
 package com.revoktek.reysol.persistence.entities;
 
+import java.util.Date;
+
 import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
-import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.Date;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -41,7 +39,16 @@ public class Cliente {
     private Date fechaRegistro;
 
     @Column(name = "estatus")
-    private Boolean estatus;
+    private Integer estatus;
+
+    
+    public Boolean getEstatus() {
+        return this.estatus != null && this.estatus == 1;
+    }
+
+    public void setEstatus(Boolean estatus) {
+        this.estatus = (estatus != null && estatus) ? 1 : 2;
+    }
 
     @Column(name = "nombre")
     private String nombre;
