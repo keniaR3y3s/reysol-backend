@@ -15,8 +15,8 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class PagoDTO {
 
+public class PagoDTO {
     private Long idPago;
     private BigDecimal monto;
     private Date fechaRegistro;
