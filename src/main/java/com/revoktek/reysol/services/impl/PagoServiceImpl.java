@@ -8,6 +8,9 @@ import com.revoktek.reysol.core.exceptions.ServiceLayerException;
 import com.revoktek.reysol.core.i18n.MessageProvider;
 import com.revoktek.reysol.core.utils.ApplicationUtil;
 import com.revoktek.reysol.dto.EmpleadoDTO;
+import com.revoktek.reysol.dto.EstatusPagoDTO;
+import com.revoktek.reysol.dto.FormaPagoDTO;
+import com.revoktek.reysol.dto.MetodoPagoDTO;
 import com.revoktek.reysol.dto.PagoDTO;
 import com.revoktek.reysol.dto.PedidoDTO;
 import com.revoktek.reysol.dto.TransaccionDTO;
@@ -28,7 +31,7 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
+import java.util.List;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
@@ -125,4 +128,55 @@ public class PagoServiceImpl implements PagoService {
         }
         return FormaPagoEnum.EFECTIVO.getValue();
     }
+@Override
+@Transactional
+public List<PagoDTO> findById(Long idPedido) throws ServiceLayerException {
+    try {
+        
+        List<Pago> pagos = pagoRepository.findByPedidoId(idPedido);
+
+        if (pagos.isEmpty()) {
+            throw new ServiceLayerException("No se encontraron pagos para el pedido con ID: " + idPedido);
+        }
+
+
+        return pagos.stream()
+                .map((Pago pago) -> PagoDTO.builder()
+                        .idPago(pago.getIdPago())
+                        .monto(pago.getMonto())
+                        .fechaRegistro(pago.getFechaRegistro())
+                        .pedido(pago.getPedido() != null ?
+                                PedidoDTO.builder()
+                                        .idPedido(pago.getPedido().getIdPedido())
+                                        .total(pago.getPedido().getTotal())
+                                        .abonado(pago.getPedido().getAbonado())
+                                        .pendiente(pago.getPedido().getPendiente())
+                                        .build() : null)
+                        .formaPago(pago.getFormaPago() != null ?
+                                FormaPagoDTO.builder()
+                                        .idFormaPago(pago.getFormaPago().getIdFormaPago())
+                                        .descripcion(pago.getFormaPago().getDescripcion())
+                                        .build() : null )
+                        .estatusPago(pago.getEstatusPago() != null ?
+                                EstatusPagoDTO.builder()
+                                        .idEstatusPago(pago.getEstatusPago() != null ? Long.valueOf(pago.getEstatusPago().getIdEstatusPago()) : null)
+                                        .nombre(pago.getEstatusPago().getNombre())
+                                        .build() : null)
+                        .empleado(pago.getEmpleado() != null ?
+                                EmpleadoDTO.builder()
+                                        .idEmpleado(pago.getEmpleado().getIdEmpleado())
+                                        .nombre(pago.getEmpleado().getNombre())
+                                        .primerApellido(pago.getEmpleado().getPrimerApellido())
+                                        .build() : null)
+                        .build()
+                ).toList();
+
+    } catch (Exception e) {
+        log.error("Error al buscar los pagos por idPedido: " + idPedido, e);
+        throw new ServiceLayerException(e);
+    }
+}
+    
+
+
 }
