@@ -1,9 +1,9 @@
 package com.revoktek.reysol.services;
 
+import java.util.List;
+
 import com.revoktek.reysol.core.exceptions.ServiceLayerException;
 import com.revoktek.reysol.dto.ClienteDTO;
-
-import java.util.List;
 
 public interface ClienteService {
 

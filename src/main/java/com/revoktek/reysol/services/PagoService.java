@@ -1,9 +1,12 @@
 package com.revoktek.reysol.services;
 
+import java.util.List;
+
 import com.revoktek.reysol.core.exceptions.ServiceLayerException;
 import com.revoktek.reysol.dto.PagoDTO;
 
 public interface PagoService {
 
     void savePayment(PagoDTO pagoDTO, String token) throws ServiceLayerException;
+    List<PagoDTO> findById(Long idPedido) throws ServiceLayerException;
 }

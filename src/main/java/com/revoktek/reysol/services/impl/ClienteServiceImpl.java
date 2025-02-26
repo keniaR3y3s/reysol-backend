@@ -1,5 +1,11 @@
 package com.revoktek.reysol.services.impl;
 
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
 import com.revoktek.reysol.core.enums.TipoClienteEnum;
 import com.revoktek.reysol.core.exceptions.ServiceLayerException;
 import com.revoktek.reysol.core.utils.ApplicationUtil;
@@ -7,29 +13,21 @@ import com.revoktek.reysol.core.utils.MapperUtil;
 import com.revoktek.reysol.dto.ClienteDTO;
 import com.revoktek.reysol.dto.ContactoDTO;
 import com.revoktek.reysol.dto.DomicilioDTO;
-import com.revoktek.reysol.dto.EmpleadoDTO;
 import com.revoktek.reysol.dto.RutaDTO;
 import com.revoktek.reysol.dto.TipoClienteDTO;
-import com.revoktek.reysol.dto.UsuarioDTO;
 import com.revoktek.reysol.persistence.entities.Cliente;
 import com.revoktek.reysol.persistence.entities.Contacto;
 import com.revoktek.reysol.persistence.entities.Domicilio;
-import com.revoktek.reysol.persistence.entities.Empleado;
 import com.revoktek.reysol.persistence.entities.Ruta;
 import com.revoktek.reysol.persistence.entities.TipoCliente;
-import com.revoktek.reysol.persistence.entities.Usuario;
 import com.revoktek.reysol.persistence.repositories.ClienteRepository;
 import com.revoktek.reysol.persistence.repositories.ContactoRepository;
 import com.revoktek.reysol.persistence.repositories.DomicilioRepository;
 import com.revoktek.reysol.services.ClienteService;
+
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
 
 
 @Slf4j
@@ -130,7 +128,18 @@ public class ClienteServiceImpl implements ClienteService {
     @Override
     @Transactional
     public void changeEstatus(Long idCliente) throws ServiceLayerException {
-
+        try {
+            Cliente cliente = clienteRepository.findByIdCliente(idCliente);
+            if (applicationUtil.isNull(cliente)) {
+                throw new ServiceLayerException("Cliente no encontrado");
+            }
+            cliente.setEstatus(!cliente.getEstatus());
+    
+            clienteRepository.save(cliente);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new ServiceLayerException(e);
+        }
     }
 
     @Override
