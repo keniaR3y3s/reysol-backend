@@ -12,6 +12,8 @@ import java.io.Serializable;
 @ToString
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TipoTransaccionDTO implements Serializable {
-    private final Long idTipoTransaccion;
+
+    private final Integer idTipoTransaccion;
     private final String nombre;
+
 }

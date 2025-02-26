@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 
@@ -102,6 +103,11 @@ public class PagoServiceImpl implements PagoService {
             log.error(e.getMessage(), e);
             throw new ServiceLayerException(e);
         }
+    }
+
+    @Override
+    public List<PagoDTO> findById(Long idPedido) throws ServiceLayerException {
+        return List.of();
     }
 
     private Integer getMetodoPago(BigDecimal monto, BigDecimal total) {

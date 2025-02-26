@@ -22,6 +22,7 @@ public class PagoDTO {
     private Date fechaRegistro;
     private PedidoDTO pedido;
     private FormaPagoDTO formaPago;
+    private MetodoPagoDTO metodoPago;
     private EstatusPagoDTO estatusPago;
     private EmpleadoDTO empleado;
 

@@ -4,6 +4,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import com.revoktek.reysol.core.enums.EstatusClienteEnum;
+import com.revoktek.reysol.services.CuentaService;
 import org.springframework.stereotype.Service;
 
 import com.revoktek.reysol.core.enums.TipoClienteEnum;
@@ -40,6 +42,7 @@ public class ClienteServiceImpl implements ClienteService {
     private final ClienteRepository clienteRepository;
     private final ApplicationUtil applicationUtil;
     private final MapperUtil mapperUtil;
+    private final CuentaService cuentaService;
 
 
     @Override
@@ -133,8 +136,11 @@ public class ClienteServiceImpl implements ClienteService {
             if (applicationUtil.isNull(cliente)) {
                 throw new ServiceLayerException("Cliente no encontrado");
             }
-            cliente.setEstatus(!cliente.getEstatus());
-    
+            if(cliente.getEstatus().equals(EstatusClienteEnum.INACTIVO.getValue())) {
+                cliente.setEstatus(EstatusClienteEnum.ACTIVO.getValue());
+            }else{
+                cliente.setEstatus(EstatusClienteEnum.INACTIVO.getValue());
+            }
             clienteRepository.save(cliente);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -155,7 +161,7 @@ public class ClienteServiceImpl implements ClienteService {
 
             cliente = mapperUtil.parseBetweenObject(Cliente.class, clienteDTO);
             cliente.setIdCliente(null);
-            cliente.setEstatus(Boolean.TRUE);
+            cliente.setEstatus(EstatusClienteEnum.ACTIVO.getValue());
             cliente.setFechaRegistro(new Date());
             cliente.setTipoCliente(tipoCliente);
 
@@ -183,6 +189,9 @@ public class ClienteServiceImpl implements ClienteService {
                 domicilio.setCliente(cliente);
                 domicilioRepository.save(domicilio);
             }
+
+            cuentaService.findOrSaveCuentaByCliente(cliente.getIdCliente());
+
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new ServiceLayerException(e);
@@ -253,7 +262,7 @@ public class ClienteServiceImpl implements ClienteService {
             Cliente cliente = new Cliente();
             cliente.setAlias(System.currentTimeMillis() + "");
             cliente.setFechaRegistro(new Date());
-            cliente.setEstatus(Boolean.TRUE);
+            cliente.setEstatus(EstatusClienteEnum.ACTIVO.getValue());
             cliente.setTipoCliente(tipoCliente);
 
             clienteRepository.save(cliente);

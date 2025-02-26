@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import com.revoktek.reysol.services.TransaccionService;
 import org.springframework.stereotype.Service;
 
 import com.revoktek.reysol.core.enums.TipoTransaccionEnum;
@@ -35,11 +36,12 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 public class CuentaServiceImpl implements CuentaService {
 
-    private final CuentaRepository cuentaRepository;
     private final TransaccionRepository transaccionRepository;
-    private JwtService jwtService;
-    private ApplicationUtil applicationUtil;
-    private PedidoRepository pedidoRepository;
+    private final TransaccionService transaccionService;
+    private final PedidoRepository pedidoRepository;
+    private final CuentaRepository cuentaRepository;
+    private final ApplicationUtil applicationUtil;
+    private final JwtService jwtService;
 
 
     @Override
@@ -113,6 +115,7 @@ public class CuentaServiceImpl implements CuentaService {
     
             // 4. Retornar la cuenta como un DTO
             return CuentaDTO.builder()
+                    .idCuenta(cuenta.getIdCuenta())
                     .saldo(cuenta.getSaldo())
                     .fechaRegistro(cuenta.getFechaRegistro())
                     .fechaModificacion(cuenta.getFechaModificacion())
@@ -164,22 +167,28 @@ public class CuentaServiceImpl implements CuentaService {
         @Override
         public CuentaDTO findById(Long idCliente) throws ServiceLayerException {
             try {
-                Cuenta cuenta = cuentaRepository.findById(idCliente)
-                        .orElseThrow(() -> new ServiceLayerException("Cuenta no encontrada"));
-
-                return CuentaDTO.builder()
+                Cuenta cuenta = cuentaRepository.findByCliente(new Cliente(idCliente));
+                if(cuenta == null) {
+                    throw new ServiceLayerException("El cuenta no existe");
+                }
+                CuentaDTO cuentaDTO = CuentaDTO.builder()
                         .idCuenta(cuenta.getIdCuenta())
                         .fechaRegistro(cuenta.getFechaRegistro())
                         .fechaModificacion(cuenta.getFechaModificacion())
                         .saldo(cuenta.getSaldo())
                         .cliente(ClienteDTO.builder()
-                            .idCliente(cuenta.getCliente().getIdCliente())
-                            .nombre(cuenta.getCliente().getNombre())
-                            .primerApellido(cuenta.getCliente().getPrimerApellido())
-                            .segundoApellido(cuenta.getCliente().getSegundoApellido())
-                            .alias(cuenta.getCliente().getAlias())
-                            .build())
+                                .idCliente(cuenta.getCliente().getIdCliente())
+                                .nombre(cuenta.getCliente().getNombre())
+                                .primerApellido(cuenta.getCliente().getPrimerApellido())
+                                .segundoApellido(cuenta.getCliente().getSegundoApellido())
+                                .alias(cuenta.getCliente().getAlias())
+                                .build())
                         .build();
+
+                List<TransaccionDTO> transaccionDTOList = transaccionService.findAllByCuenta(cuenta.getIdCuenta());
+                cuentaDTO.setTransacciones(transaccionDTOList);
+
+                return cuentaDTO;
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
                 throw new ServiceLayerException(e);

@@ -12,6 +12,6 @@ import java.io.Serializable;
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class EstatusPagoDTO implements Serializable {
-    private Long idEstatusPago;
+    private Integer idEstatusPago;
     private String nombre;
 }
