@@ -7,5 +7,9 @@ import java.util.List;
 
 public interface TransaccionService {
 
+    Long saveChargue(TransaccionDTO transaccionD, String token) throws ServiceLayerException;
+
     List<TransaccionDTO> findAllByCuenta(Long idCuenta) throws ServiceLayerException;
+
+    TransaccionDTO findById(Long idTransaccion) throws ServiceLayerException;
 }

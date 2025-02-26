@@ -35,9 +35,9 @@ public class PagoController {
         pagoService.savePayment(pagoDTO, token);
     }
 
-    @GetMapping("/findById")
-    public ResponseEntity<List<PagoDTO>> findById(@RequestParam Long idPedido) throws ServiceLayerException {
-        return ResponseEntity.ok(pagoService.findById(idPedido));
+    @GetMapping(PagoPath.FIND_BY_PEDIDO)
+    public ResponseEntity<List<PagoDTO>> findByPedido(@RequestParam Long idPedido) throws ServiceLayerException {
+        return ResponseEntity.ok(pagoService.findByPedido(idPedido));
     }
 
 }
