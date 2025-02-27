@@ -35,15 +35,9 @@ public class PagoController {
         pagoService.savePayment(pagoDTO, token);
     }
 
-    @GetMapping(PagoPath.FIND_BY_ID)
+    @GetMapping(PagoPath.SAVE_PAYMENT)
     public ResponseEntity<List<PagoDTO>> findById(@RequestParam Long idPedido) throws ServiceLayerException {
         return ResponseEntity.ok(pagoService.findById(idPedido));
-    }
-
-    @PostMapping(PagoPath.CHANGE_ESTATUS_CANCEL)
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void changeEstatusCancel(@RequestBody PagoDTO pagoDTO) throws ServiceLayerException {
-        pagoService.changeEstatusCancel(pagoDTO.getIdPago());
     }
 
 }

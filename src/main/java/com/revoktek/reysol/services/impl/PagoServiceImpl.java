@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import com.revoktek.reysol.services.TransaccionService;
 import org.springframework.stereotype.Service;
 
 import com.revoktek.reysol.core.enums.EstatusPagoEnum;
@@ -49,6 +50,7 @@ public class PagoServiceImpl implements PagoService {
     private final ApplicationUtil applicationUtil;
     private final PagoRepository pagoRepository;
     private final CuentaService cuentaService;
+    private final TransaccionService transaccionService;
     private final JwtService jwtService;
 
     @Override
@@ -75,7 +77,7 @@ public class PagoServiceImpl implements PagoService {
             transaccionDTO.setMonto(pagoDTO.getMonto());
             transaccionDTO.setEmpleado(new EmpleadoDTO(empleado.getIdEmpleado()));
             transaccionDTO.setPedido(new PedidoDTO(pedido.getIdPedido()));
-            Long idTransaccion = cuentaService.saveChargue(transaccionDTO, null);
+            Long idTransaccion = transaccionService.saveChargue(transaccionDTO, null);
 
 
             Pago pago = new Pago();
@@ -126,7 +128,7 @@ public class PagoServiceImpl implements PagoService {
     }
 @Override
 @Transactional
-public List<PagoDTO> findById(Long idPedido) throws ServiceLayerException {
+public List<PagoDTO> findByPedido(Long idPedido) throws ServiceLayerException {
     try {
 
         List<Pago> pagos = pagoRepository.findByPedidoId(idPedido);
@@ -155,7 +157,7 @@ public List<PagoDTO> findById(Long idPedido) throws ServiceLayerException {
                                         .build() : null )
                         .estatusPago(pago.getEstatusPago() != null ?
                                 EstatusPagoDTO.builder()
-                                        .idEstatusPago(pago.getEstatusPago() != null ? Long.valueOf(pago.getEstatusPago().getIdEstatusPago()) : null)
+                                        .idEstatusPago(pago.getEstatusPago().getIdEstatusPago())
                                         .nombre(pago.getEstatusPago().getNombre())
                                         .build() : null)
                         .empleado(pago.getEmpleado() != null ?
@@ -192,7 +194,6 @@ public void changeEstatusCancel(Long idPago) throws ServiceLayerException {
         throw new ServiceLayerException(e);
     }
 }
-    
 
 
 }

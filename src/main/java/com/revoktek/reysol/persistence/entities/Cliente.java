@@ -40,14 +40,6 @@ public class Cliente {
 
     @Column(name = "estatus")
     private Integer estatus;
-    
-    public Boolean getEstatus() {
-        return this.estatus != null && this.estatus == 1;
-    }
-
-    public void setEstatus(Boolean estatus) {
-        this.estatus = (estatus != null && estatus) ? 1 : 2;
-    }
 
     @Column(name = "nombre")
     private String nombre;

@@ -19,7 +19,7 @@ public class ClienteDTO {
     private Long idCliente;
     private String alias;
     private Date fechaRegistro;
-    private Boolean estatus;
+    private Integer estatus;
     private String nombre;
     private String primerApellido;
     private String segundoApellido;

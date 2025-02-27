@@ -10,6 +10,7 @@ import lombok.Setter;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -24,5 +25,6 @@ public class CuentaDTO implements Serializable {
     private Date fechaModificacion;
     private BigDecimal saldo;
     private ClienteDTO cliente;
+    private List<TransaccionDTO> transacciones;
 
 }

@@ -1,6 +1,7 @@
 package com.revoktek.reysol.controllers;
 
 
+import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
-
+@AllArgsConstructor
 @RequestMapping(CuentaPath.CONTROLLER)
 public class CuentaController {
 
