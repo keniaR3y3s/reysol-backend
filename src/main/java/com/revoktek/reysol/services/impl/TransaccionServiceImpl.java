@@ -3,8 +3,6 @@ package com.revoktek.reysol.services.impl;
 import com.revoktek.reysol.core.enums.TipoTransaccionEnum;
 import com.revoktek.reysol.core.exceptions.ServiceLayerException;
 import com.revoktek.reysol.core.utils.ApplicationUtil;
-import com.revoktek.reysol.dto.ClienteDTO;
-import com.revoktek.reysol.dto.CuentaDTO;
 import com.revoktek.reysol.dto.EmpleadoDTO;
 import com.revoktek.reysol.dto.EstatusPagoDTO;
 import com.revoktek.reysol.dto.EstatusPedidoDTO;
@@ -12,10 +10,8 @@ import com.revoktek.reysol.dto.FormaPagoDTO;
 import com.revoktek.reysol.dto.MetodoPagoDTO;
 import com.revoktek.reysol.dto.PagoDTO;
 import com.revoktek.reysol.dto.PedidoDTO;
-import com.revoktek.reysol.dto.ProductoDTO;
 import com.revoktek.reysol.dto.TipoTransaccionDTO;
 import com.revoktek.reysol.dto.TransaccionDTO;
-import com.revoktek.reysol.dto.UnidadMedidaDTO;
 import com.revoktek.reysol.persistence.entities.Cliente;
 import com.revoktek.reysol.persistence.entities.Cuenta;
 import com.revoktek.reysol.persistence.entities.Empleado;
@@ -25,22 +21,19 @@ import com.revoktek.reysol.persistence.entities.FormaPago;
 import com.revoktek.reysol.persistence.entities.MetodoPago;
 import com.revoktek.reysol.persistence.entities.Pago;
 import com.revoktek.reysol.persistence.entities.Pedido;
-import com.revoktek.reysol.persistence.entities.Producto;
 import com.revoktek.reysol.persistence.entities.TipoTransaccion;
 import com.revoktek.reysol.persistence.entities.Transaccion;
 import com.revoktek.reysol.persistence.repositories.CuentaRepository;
 import com.revoktek.reysol.persistence.repositories.PedidoRepository;
-import com.revoktek.reysol.persistence.repositories.ProductoRepository;
 import com.revoktek.reysol.persistence.repositories.TransaccionRepository;
-import com.revoktek.reysol.services.CuentaService;
 import com.revoktek.reysol.services.JwtService;
-import com.revoktek.reysol.services.ProductoService;
 import com.revoktek.reysol.services.TransaccionService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -55,7 +48,6 @@ public class TransaccionServiceImpl implements TransaccionService {
     private final PedidoRepository pedidoRepository;
     private final CuentaRepository cuentaRepository;
     private final ApplicationUtil applicationUtil;
-    private final CuentaService cuentaService;
     private final JwtService jwtService;
 
     @Override
@@ -81,20 +73,28 @@ public class TransaccionServiceImpl implements TransaccionService {
             Pedido pedido = pedidoRepository.findByIdPedido(transaccionDTO.getPedido().getIdPedido());
 
             // 3. Obtener o crear la cuenta del cliente
-            CuentaDTO cuentaDTO = cuentaService.findOrSaveCuentaByCliente(pedido.getCliente().getIdCliente());
+            Cuenta cuenta = cuentaRepository.findByCliente(new Cliente(pedido.getCliente().getIdCliente()));
+
+            if (applicationUtil.isNull(cuenta)) {
+                cuenta = new Cuenta();
+                cuenta.setCliente(new Cliente(pedido.getCliente().getIdCliente())); // Asociar la cuenta con el cliente
+                cuenta.setSaldo(BigDecimal.ZERO); // Establecer saldo inicial en 0
+                cuenta.setFechaRegistro(new Date()); // Establecer la fecha de creación
+                cuenta.setFechaModificacion(new Date()); // Establecer la fecha de modificación
+                cuentaRepository.save(cuenta); // Guardar la nueva cuenta en la base de datos
+            }
 
             // 4. Crear una nueva transacción con los datos recibidos
             Transaccion transaccion = new Transaccion();
             transaccion.setMonto(transaccionDTO.getMonto()); // Establecer el monto
             transaccion.setFechaRegistro(new Date()); // Registrar la fecha actual
-            transaccion.setCuenta(new Cuenta(cuentaDTO.getIdCuenta())); // Asignar la cuenta
+            transaccion.setCuenta(new Cuenta(cuenta.getIdCuenta())); // Asignar la cuenta
             transaccion.setTipoTransaccion(new TipoTransaccion(TipoTransaccionEnum.COBRO.getValue())); // Definir el tipo de transacción (Cobro)
             transaccion.setEmpleado(empleado); // Asociar el empleado
             transaccion.setPedido(pedido); // Asociar el pedido
             transaccionRepository.save(transaccion); // Guardar la transacción en la base de datos
 
             // 5. Actualizar el saldo de la cuenta del cliente
-            Cuenta cuenta = cuentaRepository.findByIdCuenta(cuentaDTO.getIdCuenta());
             cuenta.setSaldo(cuenta.getSaldo().subtract(transaccion.getMonto())); // Restar el monto cobrado
             cuenta.setFechaModificacion(new Date()); // Actualizar la fecha de modificación
             cuentaRepository.save(cuenta); // Guardar los cambios en la cuenta

@@ -8,7 +8,9 @@ import com.revoktek.reysol.dto.PagoDTO;
 public interface PagoService {
 
     void savePayment(PagoDTO pagoDTO, String token) throws ServiceLayerException;
+
     void changeEstatusCancel(Long idPago) throws ServiceLayerException;
+
     List<PagoDTO> findByPedido(Long idPedido) throws ServiceLayerException;
 
 }

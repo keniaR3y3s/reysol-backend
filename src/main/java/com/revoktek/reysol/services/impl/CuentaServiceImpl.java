@@ -8,7 +8,6 @@ import java.util.List;
 import com.revoktek.reysol.services.TransaccionService;
 import org.springframework.stereotype.Service;
 
-import com.revoktek.reysol.core.enums.TipoTransaccionEnum;
 import com.revoktek.reysol.core.exceptions.ServiceLayerException;
 import com.revoktek.reysol.core.utils.ApplicationUtil;
 import com.revoktek.reysol.dto.ClienteDTO;
@@ -16,15 +15,8 @@ import com.revoktek.reysol.dto.CuentaDTO;
 import com.revoktek.reysol.dto.TransaccionDTO;
 import com.revoktek.reysol.persistence.entities.Cliente;
 import com.revoktek.reysol.persistence.entities.Cuenta;
-import com.revoktek.reysol.persistence.entities.Empleado;
-import com.revoktek.reysol.persistence.entities.Pedido;
-import com.revoktek.reysol.persistence.entities.TipoTransaccion;
-import com.revoktek.reysol.persistence.entities.Transaccion;
 import com.revoktek.reysol.persistence.repositories.CuentaRepository;
-import com.revoktek.reysol.persistence.repositories.PedidoRepository;
-import com.revoktek.reysol.persistence.repositories.TransaccionRepository;
 import com.revoktek.reysol.services.CuentaService;
-import com.revoktek.reysol.services.JwtService;
 
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -36,12 +28,9 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 public class CuentaServiceImpl implements CuentaService {
 
-    private final TransaccionRepository transaccionRepository;
     private final TransaccionService transaccionService;
-    private final PedidoRepository pedidoRepository;
     private final CuentaRepository cuentaRepository;
     private final ApplicationUtil applicationUtil;
-    private final JwtService jwtService;
 
 
     @Override
