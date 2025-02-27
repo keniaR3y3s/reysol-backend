@@ -9,4 +9,5 @@ public interface PagoService {
 
     void savePayment(PagoDTO pagoDTO, String token) throws ServiceLayerException;
     List<PagoDTO> findById(Long idPedido) throws ServiceLayerException;
+    void changeEstatusCancel(Long idPago) throws ServiceLayerException;
 }

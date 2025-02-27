@@ -2,6 +2,7 @@ package com.revoktek.reysol.persistence.repositories;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -31,6 +32,13 @@ public interface PagoRepository extends JpaRepository<Pago, Long> {
             WHERE pedido.idPedido = :idPedido
             ORDER BY p.fechaRegistro DESC
             """)
-            List<Pago> findByPedidoId(Long idPedido);
+    List<Pago> findByPedidoId(Long idPedido);
+
+    @Query("""
+        SELECT p
+        FROM Pago p
+        WHERE p.idPago = :idPago
+        """)
+    Optional<Pago> findByPagoId(@Param("idPago") Long idPago);
 
 }

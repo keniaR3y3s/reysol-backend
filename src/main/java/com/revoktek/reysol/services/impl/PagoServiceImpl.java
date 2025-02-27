@@ -1,5 +1,12 @@
 package com.revoktek.reysol.services.impl;
 
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+
 import com.revoktek.reysol.core.enums.EstatusPagoEnum;
 import com.revoktek.reysol.core.enums.EstatusPedidoEnum;
 import com.revoktek.reysol.core.enums.FormaPagoEnum;
@@ -10,7 +17,6 @@ import com.revoktek.reysol.core.utils.ApplicationUtil;
 import com.revoktek.reysol.dto.EmpleadoDTO;
 import com.revoktek.reysol.dto.EstatusPagoDTO;
 import com.revoktek.reysol.dto.FormaPagoDTO;
-import com.revoktek.reysol.dto.MetodoPagoDTO;
 import com.revoktek.reysol.dto.PagoDTO;
 import com.revoktek.reysol.dto.PedidoDTO;
 import com.revoktek.reysol.dto.TransaccionDTO;
@@ -27,14 +33,10 @@ import com.revoktek.reysol.persistence.repositories.PedidoRepository;
 import com.revoktek.reysol.services.CuentaService;
 import com.revoktek.reysol.services.JwtService;
 import com.revoktek.reysol.services.PagoService;
+
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import java.util.List;
-import java.math.BigDecimal;
-import java.util.Date;
-import java.util.Optional;
 
 
 @Slf4j
@@ -126,7 +128,7 @@ public class PagoServiceImpl implements PagoService {
 @Transactional
 public List<PagoDTO> findById(Long idPedido) throws ServiceLayerException {
     try {
-        
+
         List<Pago> pagos = pagoRepository.findByPedidoId(idPedido);
 
         if (pagos.isEmpty()) {
@@ -167,6 +169,26 @@ public List<PagoDTO> findById(Long idPedido) throws ServiceLayerException {
 
     } catch (Exception e) {
         log.error("Error al buscar los pagos por idPedido: " + idPedido, e);
+        throw new ServiceLayerException(e);
+    }
+}
+@Override
+@Transactional
+public void changeEstatusCancel(Long idPago) throws ServiceLayerException {
+    try {
+       
+        Optional<Pago> pagoBusqueda = pagoRepository.findByPagoId(idPago);
+
+        if (pagoBusqueda.isEmpty()) {
+            throw new ServiceLayerException("Pago no encontrado con ID: " + idPago);
+        }
+
+        Pago pago = pagoBusqueda.get();
+        pago.setEstatusPago(new EstatusPago(3));
+        pagoRepository.save(pago);
+
+    } catch (Exception e) {
+        log.error("Error al rechazar el pago con ID: " + idPago, e);
         throw new ServiceLayerException(e);
     }
 }
