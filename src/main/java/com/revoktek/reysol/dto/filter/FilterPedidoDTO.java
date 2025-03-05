@@ -13,5 +13,6 @@ public class FilterPedidoDTO extends FilterDTO {
 
     private Integer idRuta;
     private Long idEmpleadoEntrega;
+    private Long idTipoCliente;
 
 }

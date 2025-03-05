@@ -10,10 +10,11 @@ import java.util.Date;
 @Getter
 @Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class PrecioHistorialDTO {
-    private Long idPrecioHistorial;
+public class CorteHistorialDTO {
+    private Long idCorteHistorial;
     private BigDecimal precio;
+    private BigDecimal cantidad;
     private Date fechaRegistro;
-    private ProductoDTO producto;
+    private CorteDTO corte;
     private EmpleadoDTO empleado;
 }

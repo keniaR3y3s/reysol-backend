@@ -19,6 +19,7 @@ import java.math.BigDecimal;
 public class CorteDTO implements Serializable {
     private Long idCorte;
     private BigDecimal cantidad;
+    private BigDecimal precio;
     private TipoCorteDTO tipoCorte;
     private ProductoDTO producto;
 

@@ -15,6 +15,7 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
                 pedido
             FROM Pedido pedido
             INNER JOIN FETCH pedido.cliente cliente
+            INNER JOIN FETCH cliente.tipoCliente tipoCliente
             INNER JOIN FETCH pedido.estatusPedido estatus
             LEFT JOIN pedido.ruta ruta
             INNER JOIN pedido.estatusPedido estatusPedido
@@ -24,6 +25,7 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
                 AND (:idRuta IS NULL OR ruta.idRuta = :idRuta)
                 AND (:estatusList IS NULL OR estatusPedido.idEstatusPedido IN (:estatusList))
                 AND (:idEmpleadoEntrega IS NULL OR empleadoEntrega.idEmpleado = :idEmpleadoEntrega)
+                AND (:idTipoCliente IS NULL OR tipoCliente.idTipoCliente = :idTipoCliente)
                 AND ((:busqueda IS NULL OR cliente.alias ILIKE CONCAT('%', :busqueda, '%')))
             ORDER BY pedido.fechaSolicitud DESC
             """)
@@ -33,8 +35,8 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
             @Param("idRuta") Integer idRuta,
             @Param("estatusList") List<Integer> estatusList,
             @Param("idEmpleadoEntrega") Long idEmpleadoEntrega,
-            @Param("busqueda") String busqueda
-    );
+            @Param("busqueda") String busqueda,
+            @Param("idTipoCliente") Long idTipoCliente);
 
     @Query("SELECT MAX(p.idPedido) FROM Pedido p")
     Long getMaxId();

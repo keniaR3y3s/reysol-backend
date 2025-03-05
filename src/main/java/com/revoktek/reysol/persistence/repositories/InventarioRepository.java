@@ -35,10 +35,10 @@ public interface InventarioRepository extends JpaRepository<Inventario, Long> {
     Inventario findByIdInventario(Long idInventario);
 
     @Query("""
-            SELECT
-                SUM(inventario.cantidad)
-            FROM Inventario inventario
-            WHERE inventario.producto = :producto
-            """)
+        SELECT COALESCE(SUM(COALESCE(inventario.cantidad, 0)), 0)
+        FROM Inventario inventario
+        WHERE inventario.producto = :producto
+        """)
     BigDecimal findCantidadByProducto(@Param("producto") Producto producto);
+
 }

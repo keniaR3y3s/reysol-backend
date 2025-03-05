@@ -114,7 +114,6 @@ public class InventarioServiceImpl implements InventarioService {
                         .idProducto(producto.getIdProducto())
                         .nombre(producto.getNombre())
                         .descripcion(producto.getNombre())
-                        .precio(producto.getPrecio())
                         .build();
 
                 inventarioDTO.setProducto(productoDTO);

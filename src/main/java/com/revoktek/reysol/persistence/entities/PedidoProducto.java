@@ -34,6 +34,9 @@ public class PedidoProducto {
     @Column(name = "subtotal")
     private BigDecimal subtotal;
 
+    @Column(name = "diferencia")
+    private BigDecimal diferencia;
+
     @Column(name = "cantidad_frias")
     private BigDecimal cantidadFrias;
 
@@ -69,12 +72,19 @@ public class PedidoProducto {
     @JoinColumn(name = "producto_id")
     private Producto producto;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "precio_historial_id")
-    private PrecioHistorial precioHistorial;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "precio_cliente_id")
     private PrecioCliente precioCliente;
+
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "corte_historial_id")
+    private CorteHistorial corteHistorial;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "corte_id")
+    private Corte corte;
+
 
 }

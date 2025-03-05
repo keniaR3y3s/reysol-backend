@@ -12,21 +12,23 @@ import com.revoktek.reysol.dto.PedidoProductoDTO;
 import com.revoktek.reysol.dto.ProductoDTO;
 import com.revoktek.reysol.dto.UnidadMedidaDTO;
 import com.revoktek.reysol.persistence.entities.Cliente;
+import com.revoktek.reysol.persistence.entities.Corte;
+import com.revoktek.reysol.persistence.entities.CorteHistorial;
 import com.revoktek.reysol.persistence.entities.Empleado;
 import com.revoktek.reysol.persistence.entities.Inventario;
 import com.revoktek.reysol.persistence.entities.InventarioHistorial;
 import com.revoktek.reysol.persistence.entities.Pedido;
 import com.revoktek.reysol.persistence.entities.PedidoProducto;
 import com.revoktek.reysol.persistence.entities.PrecioCliente;
-import com.revoktek.reysol.persistence.entities.PrecioHistorial;
 import com.revoktek.reysol.persistence.entities.Producto;
 import com.revoktek.reysol.persistence.entities.TipoMovimiento;
 import com.revoktek.reysol.persistence.entities.UnidadMedida;
+import com.revoktek.reysol.persistence.repositories.CorteRepository;
 import com.revoktek.reysol.persistence.repositories.InventarioHistorialRepository;
 import com.revoktek.reysol.persistence.repositories.InventarioRepository;
 import com.revoktek.reysol.persistence.repositories.PedidoProductoRepository;
 import com.revoktek.reysol.persistence.repositories.PrecioClienteRepository;
-import com.revoktek.reysol.persistence.repositories.PrecioHistorialRepository;
+import com.revoktek.reysol.persistence.repositories.CorteHistorialRepository;
 import com.revoktek.reysol.persistence.repositories.ProductoRepository;
 import com.revoktek.reysol.services.InventarioService;
 import com.revoktek.reysol.services.PedidoProductoService;
@@ -49,7 +51,7 @@ import java.util.Optional;
 public class PedidoProductoServiceImpl implements PedidoProductoService {
 
     private final InventarioHistorialRepository inventarioHistorialRepository;
-    private final PrecioHistorialRepository precioHistorialRepository;
+    private final CorteHistorialRepository precioHistorialRepository;
     private final PedidoProductoRepository pedidoProductoRepository;
     private final PrecioClienteRepository precioClienteRepository;
     private final InventarioRepository inventarioRepository;
@@ -57,6 +59,8 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
     private final InventarioService inventarioService;
     private final MessageProvider messageProvider;
     private final ApplicationUtil applicationUtil;
+    private final CorteRepository corteRepository;
+    private final CorteHistorialRepository corteHistorialRepository;
 
 
     @Override
@@ -92,24 +96,26 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
                             .idProducto(producto.getIdProducto())
                             .nombre(producto.getNombre())
                             .descripcion(producto.getNombre())
-                            .precio(producto.getPrecio())
                             .unidadMedida(unidadMedidaDTO)
                             .build();
                 }
 
 
-                PedidoProductoDTO pedidoProductoDTO = PedidoProductoDTO.builder()
+                return PedidoProductoDTO.builder()
                         .idPedidoProducto(pedidoProducto.getIdPedidoProducto())
                         .precio(pedidoProducto.getPrecio())
                         .cantidadSolicitada(pedidoProducto.getCantidadSolicitada())
                         .cantidadDespachada(pedidoProducto.getCantidadDespachada())
+                        .diferencia(pedidoProducto.getDiferencia())
                         .pesoDespachado(pedidoProducto.getPesoDespachado())
                         .pesoEntregado(pedidoProducto.getPesoEntregado())
+                        .cantidadEntregada(pedidoProducto.getCantidadEntregada())
+                        .cantidadFrias(pedidoProducto.getCantidadFrias())
+                        .pesoSolicitado(pedidoProducto.getPesoSolicitado())
+                        .subtotal(pedidoProducto.getSubtotal())
                         .producto(productoDTO)
                         .build();
 
-
-                return pedidoProductoDTO;
             }).toList();
 
             return dtoList;
@@ -192,28 +198,33 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
 
             for (PedidoProductoDTO productoDTO : productos) {
 
-                Long idProducto = productoDTO.getProducto().getIdProducto();
+                Long idCorte = productoDTO.getCorte().getIdCorte();
                 Integer idTipoInventario = getTipoInventario(productoDTO);
 
-                Producto producto = productoRepository.findByIdProducto(idProducto);
+                Corte corte = corteRepository.findById(idCorte).orElseThrow(() -> new ServiceLayerException(messageProvider.getMessageNotFound(idCorte)));
+                Producto producto = corte.getProducto();
 
-                InventarioDTO inventarioDTO = inventarioService.findOrSaveByProductoAndTipoInventario(idProducto, idTipoInventario, idEmpleado);
+                InventarioDTO inventarioDTO = inventarioService.findOrSaveByProductoAndTipoInventario(producto.getIdProducto(), idTipoInventario, idEmpleado);
                 if (inventarioDTO.getCantidad().compareTo(productoDTO.getCantidadDespachada()) < 0) {
                     throw new ServiceLayerException("Solo " + inventarioDTO.getCantidad().toPlainString() + " disponible de " + producto.getNombre());
                 }
 
                 Inventario inventario = inventarioRepository.findByIdInventario(inventarioDTO.getIdInventario());
 
+                Optional<CorteHistorial> corteHistorial = corteHistorialRepository.findAllByCorteOrderByFechaRegistroDesc(corte).stream().findFirst();
 
                 PedidoProducto pedidoProducto = new PedidoProducto();
-                pedidoProducto.setPrecio(producto.getPrecio());
+                pedidoProducto.setPrecio(corte.getPrecio());
                 pedidoProducto.setCantidadSolicitada(productoDTO.getCantidadDespachada());
                 pedidoProducto.setCantidadDespachada(productoDTO.getCantidadDespachada());
+                pedidoProducto.setDiferencia(BigDecimal.ZERO);
                 pedidoProducto.setPesoDespachado(productoDTO.getPesoDespachado());
                 pedidoProducto.setPesoEntregado(productoDTO.getPesoDespachado());
                 pedidoProducto.setPedido(pedido);
                 pedidoProducto.setProducto(producto);
                 pedidoProducto.setInventario(inventario);
+                pedidoProducto.setCorte(corte);
+                pedidoProducto.setCorteHistorial(corteHistorial.orElse(null));
                 pedidoProductoRepository.save(pedidoProducto);
 
                 BigDecimal subtotal = pedidoProducto.getPrecio().multiply(pedidoProducto.getCantidadDespachada());
@@ -308,16 +319,17 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
             Date fechaRegistro = new Date();
 
             for (PedidoProductoDTO productoDTO : productos) {
+                Long idCorte = productoDTO.getCorte().getIdCorte();
+                Corte corte = corteRepository.findById(idCorte).orElseThrow(() -> new ServiceLayerException(messageProvider.getMessageNotFound(idCorte)));
 
-                Long idProducto = productoDTO.getProducto().getIdProducto();
+                Producto producto = corte.getProducto();
 
-                Producto producto = productoRepository.findByIdProducto(idProducto);
                 PrecioCliente precioCliente = precioClienteRepository.findByProductoAndClienteAndEstatus(producto, cliente, Boolean.TRUE);
-                List<PrecioHistorial> precios = precioHistorialRepository.findAllByProductoAndPrecioAndFechaRegistroLessThanEqualOrderByFechaRegistroDesc(producto, producto.getPrecio(), fechaRegistro);
+                Optional<CorteHistorial> corteHistorial = corteHistorialRepository.findAllByCorteOrderByFechaRegistroDesc(corte).stream().findFirst();
 
 
                 PedidoProducto pedidoProducto = new PedidoProducto();
-                pedidoProducto.setPrecio(producto.getPrecio());
+                pedidoProducto.setPrecio(corte.getPrecio());
                 pedidoProducto.setSubtotal(BigDecimal.ZERO);
                 pedidoProducto.setCantidadFrias(productoDTO.getCantidadFrias());
                 pedidoProducto.setCantidadSolicitada(productoDTO.getCantidadSolicitada());
@@ -328,13 +340,13 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
                 pedidoProducto.setPesoEntregado(BigDecimal.ZERO);
                 pedidoProducto.setPedido(pedido);
                 pedidoProducto.setProducto(producto);
+                pedidoProducto.setCorteHistorial(corteHistorial.orElse(null));
+
                 if (applicationUtil.nonNull(precioCliente)) {
                     pedidoProducto.setPrecioCliente(precioCliente);
                     pedidoProducto.setPrecio(precioCliente.getPrecio());
                 }
-                if (applicationUtil.nonEmptyList(precios) && applicationUtil.isNull(precioCliente)) {
-                    pedidoProducto.setPrecioHistorial(precios.get(0));
-                }
+
 
                 BigDecimal precio = pedidoProducto.getPrecio();
                 if (applicationUtil.nonNull(pedidoProducto.getCantidadSolicitada())

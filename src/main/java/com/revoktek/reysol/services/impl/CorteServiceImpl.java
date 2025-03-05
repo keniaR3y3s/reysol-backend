@@ -7,13 +7,16 @@ import com.revoktek.reysol.core.utils.MapperUtil;
 import com.revoktek.reysol.dto.CorteDTO;
 import com.revoktek.reysol.dto.ProductoDTO;
 import com.revoktek.reysol.dto.TipoCorteDTO;
+import com.revoktek.reysol.dto.UnidadMedidaDTO;
 import com.revoktek.reysol.persistence.entities.CalculoSacrificio;
 import com.revoktek.reysol.persistence.entities.Corte;
+import com.revoktek.reysol.persistence.entities.CorteHistorial;
 import com.revoktek.reysol.persistence.entities.Empleado;
 import com.revoktek.reysol.persistence.entities.Producto;
 import com.revoktek.reysol.persistence.entities.Sacrificio;
 import com.revoktek.reysol.persistence.entities.TipoCorte;
 import com.revoktek.reysol.persistence.repositories.CalculoSacrificioRepository;
+import com.revoktek.reysol.persistence.repositories.CorteHistorialRepository;
 import com.revoktek.reysol.persistence.repositories.CorteRepository;
 import com.revoktek.reysol.persistence.repositories.InventarioRepository;
 import com.revoktek.reysol.persistence.repositories.ProductoRepository;
@@ -47,24 +50,36 @@ public class CorteServiceImpl implements CorteService {
     private final JwtServiceImpl jwtServiceImpl;
     private final SacrificioRepository sacrificioRepository;
     private final CalculoSacrificioRepository calculoSacrificioRepository;
+    private final CorteHistorialRepository corteHistorialRepository;
 
     @Override
     @Transactional
-    public void save(CorteDTO corteDTO) throws ServiceLayerException {
+    public void save(CorteDTO corteDTO, String token) throws ServiceLayerException {
         try {
 
             TipoCorte tipoCorte = tipoCorteRepository.findByIdTipoCorte(corteDTO.getTipoCorte().getIdTipoCorte());
             Producto producto = productoRepository.findByIdProducto(corteDTO.getProducto().getIdProducto());
             Corte corte = corteRepository.findByProductoAndTipoCorte(producto, tipoCorte);
+
             if (applicationUtil.isNull(corte)) {
                 corte = new Corte();
-                corte.setCantidad(corteDTO.getCantidad());
                 corte.setProducto(producto);
                 corte.setTipoCorte(tipoCorte);
-            } else {
-                corte.setCantidad(corteDTO.getCantidad());
             }
+
+            corte.setCantidad(corteDTO.getCantidad());
+            corte.setPrecio(corteDTO.getPrecio());
             corteRepository.save(corte);
+
+            Empleado empleado = jwtServiceImpl.getEmpleado(token);
+
+            CorteHistorial corteHistorial = new CorteHistorial();
+            corteHistorial.setPrecio(corteDTO.getPrecio());
+            corteHistorial.setCantidad(corteDTO.getCantidad());
+            corteHistorial.setFechaRegistro(new Date());
+            corteHistorial.setCorte(corte);
+            corteHistorial.setEmpleado(empleado);
+            corteHistorialRepository.save(corteHistorial);
 
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -91,11 +106,13 @@ public class CorteServiceImpl implements CorteService {
             List<Corte> cortes = corteRepository.findAllByTipoCorte(tipoCorte);
             List<CorteDTO> corteDTOList = cortes.stream().map(corte -> {
 
+                UnidadMedidaDTO unidadMedidaDTO = mapperUtil.parseBetweenObject(UnidadMedidaDTO.class, corte.getProducto().getUnidadMedida());
+
                 ProductoDTO productoDTO = ProductoDTO.builder()
                         .idProducto(corte.getProducto().getIdProducto())
                         .nombre(corte.getProducto().getNombre())
                         .descripcion(corte.getProducto().getNombre())
-                        .precio(corte.getProducto().getPrecio())
+                        .unidadMedida(unidadMedidaDTO)
                         .build();
 
                 CorteDTO corteDTO = new CorteDTO();
@@ -119,8 +136,10 @@ public class CorteServiceImpl implements CorteService {
     @Transactional
     public List<CorteDTO> calculate(Integer idTipoCorte, Integer cantidad, Boolean almacen, String token) throws ServiceLayerException {
         try {
-
-            if (applicationUtil.isNull(cantidad) || cantidad <= 0) {
+            System.out.println("idTipoCorte: " + idTipoCorte);
+            System.out.println("cantidad: " + cantidad);
+            System.out.println("almacen: " + almacen);
+            if (applicationUtil.isNull(cantidad)) {
                 throw new ServiceLayerException("Ingrese una cantidad valida");
             }
 
@@ -155,14 +174,14 @@ public class CorteServiceImpl implements CorteService {
                         corteDTO.setFaltante(BigDecimal.ZERO);
                     }
 
-                    CalculoSacrificio calculoSacrificio = new CalculoSacrificio();
-                    calculoSacrificio.setPendiente(corteDTO.getFaltante());
-                    calculoSacrificio.setCantidad(corteDTO.getCantidad());
-                    calculoSacrificio.setSacrificio(sacrificio);
-                    calculoSacrificio.setTipoCorte(tipoCorte);
-                    calculoSacrificio.setProducto(producto);
-
-                    calculoSacrificioRepository.save(calculoSacrificio);
+//                    CalculoSacrificio calculoSacrificio = new CalculoSacrificio();
+//                    calculoSacrificio.setPendiente(corteDTO.getFaltante());
+//                    calculoSacrificio.setCantidad(corteDTO.getCantidad());
+//                    calculoSacrificio.setSacrificio(sacrificio);
+//                    calculoSacrificio.setTipoCorte(tipoCorte);
+//                    calculoSacrificio.setProducto(producto);
+//
+//                    calculoSacrificioRepository.save(calculoSacrificio);
 
                     return corteDTO;
                 }).toList();
@@ -171,6 +190,51 @@ public class CorteServiceImpl implements CorteService {
 
 
             return corteDTOS;
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new ServiceLayerException(e);
+        }
+    }
+
+    @Override
+    public List<TipoCorteDTO> findAllWithProducts() throws ServiceLayerException {
+        try {
+
+            List<TipoCorte> tipoCortes = tipoCorteRepository.findAll();
+            List<TipoCorteDTO> tipoCorteDTOS = tipoCortes.stream().map(tipoCorte -> {
+                TipoCorteDTO tipoCorteDTO = new TipoCorteDTO();
+                tipoCorteDTO.setIdTipoCorte(tipoCorte.getIdTipoCorte());
+                tipoCorteDTO.setNombre(tipoCorte.getNombre());
+                tipoCorteDTO.setDescripcion(tipoCorte.getDescripcion());
+
+                List<Corte> cortes = corteRepository.findAllByTipoCorte(tipoCorte);
+                List<CorteDTO> corteDTOList = cortes.stream().map(corte -> {
+
+                    UnidadMedidaDTO unidadMedidaDTO = mapperUtil.parseBetweenObject(UnidadMedidaDTO.class, corte.getProducto().getUnidadMedida());
+
+                    ProductoDTO productoDTO = ProductoDTO.builder()
+                            .idProducto(corte.getProducto().getIdProducto())
+                            .nombre(corte.getProducto().getNombre())
+                            .descripcion(corte.getProducto().getNombre())
+                            .unidadMedida(unidadMedidaDTO)
+                            .build();
+
+                    CorteDTO corteDTO = new CorteDTO();
+                    corteDTO.setIdCorte(corte.getIdCorte());
+                    corteDTO.setCantidad(corte.getCantidad());
+                    corteDTO.setPrecio(corte.getPrecio());
+                    corteDTO.setProducto(productoDTO);
+                    return corteDTO;
+
+                }).toList();
+
+                tipoCorteDTO.setCortes(corteDTOList);
+
+                return tipoCorteDTO;
+            }).toList();
+
+            return tipoCorteDTOS;
+
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new ServiceLayerException(e);

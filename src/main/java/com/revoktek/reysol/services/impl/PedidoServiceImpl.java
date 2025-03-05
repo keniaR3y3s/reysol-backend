@@ -7,7 +7,11 @@ import com.revoktek.reysol.core.i18n.MessageProvider;
 import com.revoktek.reysol.core.utils.ApplicationUtil;
 import com.revoktek.reysol.core.utils.MapperUtil;
 import com.revoktek.reysol.dto.ClienteDTO;
+import com.revoktek.reysol.dto.DomicilioDTO;
+import com.revoktek.reysol.dto.EmpleadoDTO;
 import com.revoktek.reysol.dto.EstatusPedidoDTO;
+import com.revoktek.reysol.dto.MetodoPagoDTO;
+import com.revoktek.reysol.dto.PagoDTO;
 import com.revoktek.reysol.dto.PedidoDTO;
 import com.revoktek.reysol.dto.PedidoProductoDTO;
 import com.revoktek.reysol.dto.RutaDTO;
@@ -16,6 +20,7 @@ import com.revoktek.reysol.persistence.entities.Cliente;
 import com.revoktek.reysol.persistence.entities.Domicilio;
 import com.revoktek.reysol.persistence.entities.Empleado;
 import com.revoktek.reysol.persistence.entities.EstatusPedido;
+import com.revoktek.reysol.persistence.entities.MetodoPago;
 import com.revoktek.reysol.persistence.entities.Pedido;
 import com.revoktek.reysol.persistence.entities.Ruta;
 import com.revoktek.reysol.persistence.repositories.ClienteRepository;
@@ -23,6 +28,7 @@ import com.revoktek.reysol.persistence.repositories.DomicilioRepository;
 import com.revoktek.reysol.persistence.repositories.PedidoRepository;
 import com.revoktek.reysol.services.ClienteService;
 import com.revoktek.reysol.services.JwtService;
+import com.revoktek.reysol.services.PagoService;
 import com.revoktek.reysol.services.PedidoProductoService;
 import com.revoktek.reysol.services.PedidoService;
 import jakarta.transaction.Transactional;
@@ -52,6 +58,7 @@ public class PedidoServiceImpl implements PedidoService {
     private final MessageProvider messageProvider;
     private final MapperUtil mapperUtil;
     private final JwtService jwtService;
+    private final PagoService pagoService;
 
 
     @Override
@@ -70,7 +77,8 @@ public class PedidoServiceImpl implements PedidoService {
                     filterPedido.getIdRuta(),
                     estatusList,
                     filterPedido.getIdEmpleadoEntrega(),
-                    filterPedido.getBusqueda()
+                    filterPedido.getBusqueda(),
+                    filterPedido.getIdTipoCliente()
             );
             if (applicationUtil.isEmptyList(pedidos)) {
                 log.info("Sin elementos encontrados.");
@@ -127,10 +135,40 @@ public class PedidoServiceImpl implements PedidoService {
             PedidoDTO pedidoDTO = PedidoDTO.builder()
                     .idPedido(pedido.getIdPedido())
                     .clave(pedido.getClave())
-                    .fechaEntrega(pedido.getFechaEntrega())
+                    .fechaRegistro(pedido.getFechaRegistro())
                     .fechaSolicitud(pedido.getFechaSolicitud())
+                    .fechaEntrega(pedido.getFechaEntrega())
+                    .fechaDespacha(pedido.getFechaDespacha())
+                    .abonado(pedido.getAbonado())
                     .total(pedido.getTotal())
+                    .pendiente(pedido.getPendiente())
                     .build();
+
+            MetodoPago metodoPago = pedido.getMetodoPago();
+            if (applicationUtil.nonNull(metodoPago)) {
+                MetodoPagoDTO metodoPagoDTO = mapperUtil.parseBetweenObject(MetodoPagoDTO.class, metodoPago);
+                pedidoDTO.setMetodoPago(metodoPagoDTO);
+            }
+
+            Empleado empleado = pedido.getEmpleadoEntrega();
+            if (applicationUtil.nonNull(empleado)) {
+                EmpleadoDTO empleadoDTO = new EmpleadoDTO();
+                empleadoDTO.setIdEmpleado(empleado.getIdEmpleado());
+                empleadoDTO.setNombre(empleado.getNombre());
+                empleadoDTO.setPrimerApellido(empleado.getPrimerApellido());
+                empleadoDTO.setSegundoApellido(empleado.getSegundoApellido());
+                pedidoDTO.setEmpleadoEntrega(empleadoDTO);
+            }
+
+            empleado = pedido.getEmpleadoDespacha();
+            if (applicationUtil.nonNull(empleado)) {
+                EmpleadoDTO empleadoDTO = new EmpleadoDTO();
+                empleadoDTO.setIdEmpleado(empleado.getIdEmpleado());
+                empleadoDTO.setNombre(empleado.getNombre());
+                empleadoDTO.setPrimerApellido(empleado.getPrimerApellido());
+                empleadoDTO.setSegundoApellido(empleado.getSegundoApellido());
+                pedidoDTO.setEmpleadoDespacha(empleadoDTO);
+            }
 
             Cliente cliente = pedido.getCliente();
             if (applicationUtil.nonNull(cliente)) {
@@ -145,7 +183,18 @@ public class PedidoServiceImpl implements PedidoService {
                     RutaDTO rutaDTO = mapperUtil.parseBetweenObject(RutaDTO.class, ruta);
                     clienteDTO.setRuta(rutaDTO);
                 }
+            }
 
+            Ruta ruta = pedido.getRuta();
+            if (applicationUtil.nonNull(ruta)) {
+                pedidoDTO.setRuta(mapperUtil.parseBetweenObject(RutaDTO.class, ruta));
+            }
+
+            Domicilio domicilio = pedido.getDomicilio();
+            if (applicationUtil.nonNull(domicilio)) {
+                domicilio.setCliente(null);
+                DomicilioDTO domicilioDTO = mapperUtil.parseBetweenObject(DomicilioDTO.class, domicilio);
+                pedidoDTO.setDomicilio(domicilioDTO);
             }
 
             EstatusPedido estatusPedido = pedido.getEstatusPedido();
@@ -160,6 +209,9 @@ public class PedidoServiceImpl implements PedidoService {
 
             List<PedidoProductoDTO> productos = pedidoProductoService.findAllByProducto(pedido.getIdPedido());
             pedidoDTO.setProductos(productos);
+
+            List<PagoDTO> pagoDTOS = pagoService.findByPedido(id);
+            pedidoDTO.setPagos(pagoDTOS);
 
             return pedidoDTO;
         } catch (Exception e) {

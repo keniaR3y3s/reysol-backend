@@ -32,6 +32,9 @@ public class Corte {
     @Column(name = "cantidad")
     private BigDecimal cantidad;
 
+    @Column(name = "precio")
+    private BigDecimal precio;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "producto_id")
     private Producto producto;

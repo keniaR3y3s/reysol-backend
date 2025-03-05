@@ -11,10 +11,11 @@ import java.math.BigDecimal;
 @Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ProductoDTO {
+
     private Long idProducto;
     private String nombre;
-    private BigDecimal precio;
     private Boolean estatus;
     private String descripcion;
     private UnidadMedidaDTO unidadMedida;
+
 }

@@ -1,10 +1,10 @@
 package com.revoktek.reysol.persistence.entities;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -24,23 +24,26 @@ import java.util.Date;
 @Getter
 @Setter
 @Entity
-@Table(name = "precio_historial")
-public class PrecioHistorial {
+@Table(name = "corte_historial")
+public class CorteHistorial {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_precio_historial")
-    private Long idPrecioHistorial;
+    @Column(name = "id_corte_historial")
+    private Long idCorteHistorial;
 
     @Column(name = "precio")
     private BigDecimal precio;
+
+    @Column(name = "cantidad")
+    private BigDecimal cantidad;
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "fecha_registro")
     private Date fechaRegistro;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "producto_id")
-    private Producto producto;
+    @JoinColumn(name = "corte_id")
+    private Corte corte;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "empleado_id")

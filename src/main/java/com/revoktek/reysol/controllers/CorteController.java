@@ -3,6 +3,7 @@ package com.revoktek.reysol.controllers;
 import com.revoktek.reysol.core.constants.request.CortePath;
 import com.revoktek.reysol.core.exceptions.ServiceLayerException;
 import com.revoktek.reysol.dto.CorteDTO;
+import com.revoktek.reysol.dto.TipoCorteDTO;
 import com.revoktek.reysol.services.CorteService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,10 +40,14 @@ public class CorteController {
 
     @PostMapping(CortePath.SAVE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void save(@RequestBody CorteDTO corteDTO) throws ServiceLayerException {
-        corteService.save(corteDTO);
+    public void save(@RequestHeader(HttpHeaders.AUTHORIZATION) String token, @RequestBody CorteDTO corteDTO) throws ServiceLayerException {
+        corteService.save(corteDTO, token);
     }
 
+    @GetMapping(CortePath.FIND_ALL_WITH_PRODUCTS)
+    public ResponseEntity<?> findAllWithProducts() throws ServiceLayerException {
+        return ResponseEntity.ok(corteService.findAllWithProducts());
+    }
 
 
 }

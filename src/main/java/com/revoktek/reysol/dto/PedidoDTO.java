@@ -34,6 +34,7 @@ public class PedidoDTO {
     private EmpleadoDTO empleadoDespacha;
     private RutaDTO ruta;
     private List<PedidoProductoDTO> productos;
+    private List<PagoDTO> pagos;
 
     public PedidoDTO(Long idPedido) {
         this.idPedido = idPedido;

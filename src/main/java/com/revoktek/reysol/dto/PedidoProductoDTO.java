@@ -23,9 +23,11 @@ public class PedidoProductoDTO {
     private BigDecimal pesoDespachado;
     private BigDecimal cantidadEntregada;
     private BigDecimal pesoEntregado;
+    private BigDecimal diferencia;
     private PedidoDTO pedido;
     private InventarioDTO inventario;
     private ProductoDTO producto;
-    private PrecioHistorialDTO precioHistorial;
+    private CorteHistorialDTO corteHistorial;
+    private CorteDTO corte;
     private PrecioClienteDTO precioCliente;
 }

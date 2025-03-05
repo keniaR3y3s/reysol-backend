@@ -31,9 +31,6 @@ public class Producto {
     @Column(name = "nombre")
     private String nombre;
 
-    @Column(name = "precio")
-    private BigDecimal precio;
-
     @Column(name = "estatus")
     private Boolean estatus;
 

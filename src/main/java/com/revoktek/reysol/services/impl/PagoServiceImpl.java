@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import com.revoktek.reysol.dto.MetodoPagoDTO;
 import com.revoktek.reysol.services.TransaccionService;
 import org.springframework.stereotype.Service;
 
@@ -132,10 +133,6 @@ public class PagoServiceImpl implements PagoService {
 
             List<Pago> pagos = pagoRepository.findByPedidoId(idPedido);
 
-            if (pagos.isEmpty()) {
-                throw new ServiceLayerException("No se encontraron pagos para el pedido con ID: " + idPedido);
-            }
-
 
             return pagos.stream()
                     .map((Pago pago) -> PagoDTO.builder()
@@ -152,7 +149,14 @@ public class PagoServiceImpl implements PagoService {
                             .formaPago(pago.getFormaPago() != null ?
                                     FormaPagoDTO.builder()
                                             .idFormaPago(pago.getFormaPago().getIdFormaPago())
+                                            .nombre(pago.getFormaPago().getNombre())
                                             .descripcion(pago.getFormaPago().getDescripcion())
+                                            .build() : null)
+                            .metodoPago(pago.getMetodoPago() != null ?
+                                    MetodoPagoDTO.builder()
+                                            .idMetodoPago(pago.getMetodoPago().getIdMetodoPago())
+                                            .nombre(pago.getMetodoPago().getNombre())
+                                            .descripcion(pago.getMetodoPago().getDescripcion())
                                             .build() : null)
                             .estatusPago(pago.getEstatusPago() != null ?
                                     EstatusPagoDTO.builder()
@@ -164,6 +168,7 @@ public class PagoServiceImpl implements PagoService {
                                             .idEmpleado(pago.getEmpleado().getIdEmpleado())
                                             .nombre(pago.getEmpleado().getNombre())
                                             .primerApellido(pago.getEmpleado().getPrimerApellido())
+                                            .segundoApellido(pago.getEmpleado().getPrimerApellido())
                                             .build() : null)
                             .build()
                     ).toList();
