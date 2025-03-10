@@ -15,6 +15,8 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
                 pedido
             FROM Pedido pedido
             INNER JOIN FETCH pedido.cliente cliente
+            LEFT JOIN FETCH cliente.domicilio domicilio
+            LEFT JOIN FETCH cliente.contacto contacto
             INNER JOIN FETCH cliente.tipoCliente tipoCliente
             INNER JOIN FETCH pedido.estatusPedido estatus
             LEFT JOIN pedido.ruta ruta
@@ -42,4 +44,16 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
     Long getMaxId();
 
     Pedido findByIdPedido(Long idPedido);
+
+    @Query("""
+            SELECT
+                pedido
+            FROM Pedido pedido
+            INNER JOIN FETCH pedido.cliente cliente
+            INNER JOIN FETCH pedido.estatusPedido estatus
+            WHERE
+                ( cliente.idCliente = :idCliente )
+            ORDER BY pedido.fechaSolicitud DESC
+            """)
+    List<Pedido> findAllByCliente(Long idCliente);
 }

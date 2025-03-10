@@ -6,26 +6,21 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
 import java.util.Date;
 
-@Builder
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
+@Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class TransaccionDTO implements Serializable {
+public class CancelacionPagoDTO {
 
-    private Long idTransaccion;
+    private Long idCancelacionPago;
     private Date fechaRegistro;
-    private BigDecimal monto;
-    private CuentaDTO cuenta;
-    private TipoTransaccionDTO tipoTransaccion;
-    private EmpleadoDTO empleado;
-    private PedidoDTO pedido;
+    private String motivo;
     private PagoDTO pago;
+    private EmpleadoDTO empleado;
+
 }

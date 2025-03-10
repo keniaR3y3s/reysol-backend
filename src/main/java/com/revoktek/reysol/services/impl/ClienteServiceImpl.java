@@ -120,7 +120,7 @@ public class ClienteServiceImpl implements ClienteService {
                 throw new ServiceLayerException("Cliente no encontrado.");
             }
 
-            return getClienteDTO(cliente, true);
+            return getClienteDTO(cliente, false);
 
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -136,11 +136,9 @@ public class ClienteServiceImpl implements ClienteService {
             if (applicationUtil.isNull(cliente)) {
                 throw new ServiceLayerException("Cliente no encontrado");
             }
-            if(cliente.getEstatus().equals(EstatusClienteEnum.INACTIVO.getValue())) {
-                cliente.setEstatus(EstatusClienteEnum.ACTIVO.getValue());
-            }else{
-                cliente.setEstatus(EstatusClienteEnum.INACTIVO.getValue());
-            }
+            boolean inactive = cliente.getEstatus().equals(EstatusClienteEnum.INACTIVO.getValue());
+            cliente.setEstatus(inactive ? EstatusClienteEnum.ACTIVO.getValue() : EstatusClienteEnum.INACTIVO.getValue());
+
             clienteRepository.save(cliente);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -168,22 +166,19 @@ public class ClienteServiceImpl implements ClienteService {
             cliente.setContacto(null);
             cliente.setDomicilio(null);
 
-            if (applicationUtil.nonNull(clienteDTO.getRuta())
-                    && applicationUtil.nonNull(clienteDTO.getRuta().getIdRuta())) {
+            if (applicationUtil.nonNull(clienteDTO.getRuta()) && applicationUtil.nonNull(clienteDTO.getRuta().getIdRuta())) {
                 cliente.setRuta(new Ruta(clienteDTO.getRuta().getIdRuta()));
             }
             clienteRepository.save(cliente);
 
-            if (applicationUtil.nonNull(clienteDTO.getContacto())
-                    && applicationUtil.nonEmpty(clienteDTO.getContacto().getTelefono())) {
+            if (applicationUtil.nonNull(clienteDTO.getContacto()) && applicationUtil.nonEmpty(clienteDTO.getContacto().getTelefono())) {
                 Contacto contacto = new Contacto();
                 contacto.setIdContacto(null);
                 contacto.setTelefono(clienteDTO.getContacto().getTelefono());
                 contacto.setCliente(cliente);
                 contactoRepository.save(contacto);
             }
-            if (applicationUtil.nonNull(clienteDTO.getDomicilio())
-                    && applicationUtil.nonEmpty(clienteDTO.getDomicilio().getCalle())) {
+            if (applicationUtil.nonNull(clienteDTO.getDomicilio()) && applicationUtil.nonEmpty(clienteDTO.getDomicilio().getCalle())) {
                 Domicilio domicilio = mapperUtil.parseBetweenObject(Domicilio.class, clienteDTO.getDomicilio());
                 domicilio.setIdDomicilio(null);
                 domicilio.setCliente(cliente);
@@ -215,8 +210,7 @@ public class ClienteServiceImpl implements ClienteService {
             cliente.setPrimerApellido(clienteDTO.getPrimerApellido());
             cliente.setSegundoApellido(clienteDTO.getSegundoApellido());
 
-            if (applicationUtil.nonNull(clienteDTO.getRuta())
-                    && applicationUtil.nonNull(clienteDTO.getRuta().getIdRuta())) {
+            if (applicationUtil.nonNull(clienteDTO.getRuta()) && applicationUtil.nonNull(clienteDTO.getRuta().getIdRuta())) {
                 cliente.setRuta(new Ruta(clienteDTO.getRuta().getIdRuta()));
             } else {
                 cliente.setRuta(null);
@@ -224,8 +218,7 @@ public class ClienteServiceImpl implements ClienteService {
             clienteRepository.save(cliente);
 
             Contacto contacto = contactoRepository.findByCliente(cliente);
-            if (applicationUtil.nonNull(clienteDTO.getContacto())
-                    && applicationUtil.nonEmpty(clienteDTO.getContacto().getTelefono())) {
+            if (applicationUtil.nonNull(clienteDTO.getContacto()) && applicationUtil.nonEmpty(clienteDTO.getContacto().getTelefono())) {
                 contacto = applicationUtil.isNull(contacto) ? new Contacto() : contacto;
                 contacto.setTelefono(clienteDTO.getContacto().getTelefono());
                 contactoRepository.save(contacto);
@@ -273,10 +266,7 @@ public class ClienteServiceImpl implements ClienteService {
             clienteRepository.save(cliente);
 
 
-            return ClienteDTO.builder()
-                    .idCliente(cliente.getIdCliente())
-                    .alias(cliente.getAlias())
-                    .build();
+            return ClienteDTO.builder().idCliente(cliente.getIdCliente()).alias(cliente.getAlias()).build();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new ServiceLayerException(e);

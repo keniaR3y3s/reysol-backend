@@ -8,7 +8,7 @@ import com.revoktek.reysol.dto.UsuarioDTO;
 import com.revoktek.reysol.persistence.entities.Rol;
 import com.revoktek.reysol.persistence.entities.Usuario;
 import com.revoktek.reysol.persistence.entities.UsuarioRol;
-import com.revoktek.reysol.persistence.entities.UsuarioRolRepository;
+import com.revoktek.reysol.persistence.repositories.UsuarioRolRepository;
 import com.revoktek.reysol.persistence.repositories.RolRepository;
 import com.revoktek.reysol.persistence.repositories.UsuarioRepository;
 import com.revoktek.reysol.services.AuthService;

@@ -13,5 +13,6 @@ public interface CuentaService {
 
     CuentaDTO findById(Long idCliente) throws ServiceLayerException;
 
+    void updateSaldo(Long idCliente) throws ServiceLayerException;
 
 }

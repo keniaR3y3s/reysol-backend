@@ -1,18 +1,28 @@
 package com.revoktek.reysol.services.impl;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import com.revoktek.reysol.services.TransaccionService;
+import com.revoktek.reysol.core.enums.EstatusPedidoEnum;
+import com.revoktek.reysol.dto.CancelacionPagoDTO;
+import com.revoktek.reysol.dto.EmpleadoDTO;
+import com.revoktek.reysol.dto.EstatusPagoDTO;
+import com.revoktek.reysol.dto.EstatusPedidoDTO;
+import com.revoktek.reysol.dto.FormaPagoDTO;
+import com.revoktek.reysol.dto.MetodoPagoDTO;
+import com.revoktek.reysol.dto.PagoDTO;
+import com.revoktek.reysol.dto.PedidoDTO;
+import com.revoktek.reysol.persistence.entities.Pago;
+import com.revoktek.reysol.persistence.repositories.PagoRepository;
 import org.springframework.stereotype.Service;
 
 import com.revoktek.reysol.core.exceptions.ServiceLayerException;
 import com.revoktek.reysol.core.utils.ApplicationUtil;
 import com.revoktek.reysol.dto.ClienteDTO;
 import com.revoktek.reysol.dto.CuentaDTO;
-import com.revoktek.reysol.dto.TransaccionDTO;
 import com.revoktek.reysol.persistence.entities.Cliente;
 import com.revoktek.reysol.persistence.entities.Cuenta;
 import com.revoktek.reysol.persistence.repositories.CuentaRepository;
@@ -28,8 +38,8 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 public class CuentaServiceImpl implements CuentaService {
 
-    private final TransaccionService transaccionService;
     private final CuentaRepository cuentaRepository;
+    private final PagoRepository pagoRepository;
     private final ApplicationUtil applicationUtil;
 
 
@@ -41,7 +51,7 @@ public class CuentaServiceImpl implements CuentaService {
             Cliente cliente = new Cliente(idCliente);
 
             // 2. Buscar la cuenta del cliente en la base de datos
-            Cuenta cuenta = cuentaRepository.findByCliente(cliente);
+            Cuenta cuenta = cuentaRepository.findByCliente(idCliente);
 
             // 3. Si la cuenta no existe, crear una nueva
             if (applicationUtil.isNull(cuenta)) {
@@ -108,7 +118,7 @@ public class CuentaServiceImpl implements CuentaService {
     @Override
     public CuentaDTO findById(Long idCliente) throws ServiceLayerException {
         try {
-            Cuenta cuenta = cuentaRepository.findByCliente(new Cliente(idCliente));
+            Cuenta cuenta = cuentaRepository.findByCliente(idCliente);
             if (cuenta == null) {
                 throw new ServiceLayerException("El cuenta no existe");
             }
@@ -126,8 +136,8 @@ public class CuentaServiceImpl implements CuentaService {
                             .build())
                     .build();
 
-            List<TransaccionDTO> transaccionDTOList = transaccionService.findAllByCuenta(cuenta.getIdCuenta());
-            cuentaDTO.setTransacciones(transaccionDTOList);
+            List<PagoDTO> pagos = findAllByCuenta(cuenta.getIdCuenta());
+            cuentaDTO.setPagos(pagos);
 
             return cuentaDTO;
         } catch (Exception e) {
@@ -135,5 +145,103 @@ public class CuentaServiceImpl implements CuentaService {
             throw new ServiceLayerException(e);
         }
     }
+
+    private List<PagoDTO> findAllByCuenta(Long idCuenta) {
+            try {
+
+                List<Pago> pagos = pagoRepository.findAllByCuenta(idCuenta);
+
+                return pagos.stream()
+                        .map((Pago pago) -> PagoDTO.builder()
+                                .idPago(pago.getIdPago())
+                                .monto(pago.getMonto())
+                                .fechaRegistro(pago.getFechaRegistro())
+                                .cancelacionPago(pago.getCancelacionPago() != null ?
+                                        CancelacionPagoDTO.builder()
+                                                .idCancelacionPago(pago.getCancelacionPago().getIdCancelacionPago())
+                                                .fechaRegistro(pago.getCancelacionPago().getFechaRegistro())
+                                                .motivo(pago.getCancelacionPago().getMotivo())
+                                                .empleado(EmpleadoDTO.builder()
+                                                        .idEmpleado(pago.getCancelacionPago().getEmpleado().getIdEmpleado())
+                                                        .nombre(pago.getCancelacionPago().getEmpleado().getNombre())
+                                                        .primerApellido(pago.getCancelacionPago().getEmpleado().getPrimerApellido())
+                                                        .segundoApellido(pago.getCancelacionPago().getEmpleado().getPrimerApellido())
+                                                        .build())
+                                                .build()
+                                        : null)
+                                .pedido(pago.getPedido() != null ?
+                                        PedidoDTO.builder()
+                                                .idPedido(pago.getPedido().getIdPedido())
+                                                .clave(pago.getPedido().getClave())
+                                                .total(pago.getPedido().getTotal())
+                                                .abonado(pago.getPedido().getAbonado())
+                                                .pendiente(pago.getPedido().getPendiente())
+                                                .estatusPedido(pago.getPedido().getEstatusPedido() != null ?
+                                                        EstatusPedidoDTO.builder()
+                                                                .idEstatusPedido(pago.getPedido().getEstatusPedido().getIdEstatusPedido())
+                                                                .nombre(pago.getPedido().getEstatusPedido().getNombre())
+                                                                .build()
+                                                        : null)
+                                                .build() : null)
+                                .formaPago(pago.getFormaPago() != null ?
+                                        FormaPagoDTO.builder()
+                                                .idFormaPago(pago.getFormaPago().getIdFormaPago())
+                                                .nombre(pago.getFormaPago().getNombre())
+                                                .descripcion(pago.getFormaPago().getDescripcion())
+                                                .build() : null)
+                                .metodoPago(pago.getMetodoPago() != null ?
+                                        MetodoPagoDTO.builder()
+                                                .idMetodoPago(pago.getMetodoPago().getIdMetodoPago())
+                                                .nombre(pago.getMetodoPago().getNombre())
+                                                .descripcion(pago.getMetodoPago().getDescripcion())
+                                                .build() : null)
+                                .estatusPago(pago.getEstatusPago() != null ?
+                                        EstatusPagoDTO.builder()
+                                                .idEstatusPago(pago.getEstatusPago().getIdEstatusPago())
+                                                .nombre(pago.getEstatusPago().getNombre())
+                                                .build() : null)
+                                .empleado(pago.getEmpleado() != null ?
+                                        EmpleadoDTO.builder()
+                                                .idEmpleado(pago.getEmpleado().getIdEmpleado())
+                                                .nombre(pago.getEmpleado().getNombre())
+                                                .primerApellido(pago.getEmpleado().getPrimerApellido())
+                                                .segundoApellido(pago.getEmpleado().getPrimerApellido())
+                                                .build() : null)
+                                .build()
+                        ).toList();
+
+            } catch (Exception e) {
+                throw new ServiceLayerException(e);
+            }
+
+    }
+
+    @Override
+    @Transactional
+    public void updateSaldo(Long idCliente) throws ServiceLayerException {
+
+        Cuenta cuenta = cuentaRepository.findByCliente(idCliente);
+
+        if (applicationUtil.isNull(cuenta)) {
+            cuenta = new Cuenta();
+            cuenta.setCliente(new Cliente(idCliente));
+            cuenta.setSaldo(BigDecimal.ZERO);
+            cuenta.setFechaRegistro(new Date());
+            cuenta.setFechaModificacion(new Date());
+            cuentaRepository.save(cuenta);
+        }
+
+        List<Integer> estatusList = Arrays.asList(
+                EstatusPedidoEnum.COBRADO.getValue(),
+                EstatusPedidoEnum.CANCELADO.getValue()
+        );
+
+        BigDecimal pending = cuentaRepository.sumPending(idCliente, estatusList);
+        cuenta.setSaldo(pending);
+        cuentaRepository.save(cuenta);
+
+    }
+
+
 
 }

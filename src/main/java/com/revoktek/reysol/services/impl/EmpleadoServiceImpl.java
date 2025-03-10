@@ -1,24 +1,19 @@
 package com.revoktek.reysol.services.impl;
 
-import com.revoktek.reysol.core.enums.EstatusPedidoEnum;
 import com.revoktek.reysol.core.exceptions.ServiceLayerException;
 import com.revoktek.reysol.core.i18n.MessageProvider;
 import com.revoktek.reysol.core.utils.ApplicationUtil;
-import com.revoktek.reysol.dto.ClienteDTO;
 import com.revoktek.reysol.dto.ContactoDTO;
 import com.revoktek.reysol.dto.EmpleadoDTO;
 import com.revoktek.reysol.dto.RolDTO;
 import com.revoktek.reysol.dto.UsuarioDTO;
-import com.revoktek.reysol.persistence.entities.Cliente;
 import com.revoktek.reysol.persistence.entities.Contacto;
 import com.revoktek.reysol.persistence.entities.Empleado;
-import com.revoktek.reysol.persistence.entities.EstatusPedido;
-import com.revoktek.reysol.persistence.entities.Pedido;
 import com.revoktek.reysol.persistence.entities.Rol;
 import com.revoktek.reysol.persistence.entities.Usuario;
 import com.revoktek.reysol.persistence.entities.UsuarioRol;
 import com.revoktek.reysol.persistence.entities.UsuarioRolId;
-import com.revoktek.reysol.persistence.entities.UsuarioRolRepository;
+import com.revoktek.reysol.persistence.repositories.UsuarioRolRepository;
 import com.revoktek.reysol.persistence.repositories.ContactoRepository;
 import com.revoktek.reysol.persistence.repositories.EmpleadoRepository;
 import com.revoktek.reysol.persistence.repositories.UsuarioRepository;
@@ -29,7 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;

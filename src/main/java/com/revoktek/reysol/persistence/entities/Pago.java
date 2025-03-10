@@ -57,7 +57,11 @@ public class Pago {
     private Empleado empleado;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "transaccion_id")
-    private Transaccion transaccion;
+    @JoinColumn(name = "cuenta_id")
+    private Cuenta cuenta;
+
+    @OneToOne(mappedBy = "pago", fetch = FetchType.LAZY)
+    private CancelacionPago cancelacionPago;
+
 
 }

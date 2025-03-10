@@ -5,6 +5,7 @@ public class PedidoPath {
     public static final String CONTROLLER = "/pedido";
     public static final String FIND_ALL_BY_FILTER = "/findAllByFilter";
     public static final String FIND_BY_ID = "/findById";
+    public static final String FIND_BY_CLIENT = "/findByClient";
     public static final String SAVE = "/save";
     public static final String SAVE_DISPATCH = "/saveDispatch";
     public static final String SAVE_PEDIDO_EXTEMPORANEO = "/saveExtemporaneo";

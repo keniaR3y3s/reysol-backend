@@ -2,6 +2,7 @@ package com.revoktek.reysol.controllers;
 
 import java.util.List;
 
+import com.revoktek.reysol.dto.CancelacionPagoDTO;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,8 +43,8 @@ public class PagoController {
 
     @PostMapping(PagoPath.CHANGE_ESTATUS_CANCEL)
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void changeEstatusCancel(@RequestBody PagoDTO pagoDTO) throws ServiceLayerException {
-        pagoService.changeEstatusCancel(pagoDTO.getIdPago());
+    public void changeEstatusCancel(@RequestHeader(HttpHeaders.AUTHORIZATION) String token, @RequestBody CancelacionPagoDTO ct) throws ServiceLayerException {
+        pagoService.changeEstatusCancel(ct, token);
     }
 
 }

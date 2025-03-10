@@ -25,5 +25,6 @@ public class PagoDTO {
     private MetodoPagoDTO metodoPago;
     private EstatusPagoDTO estatusPago;
     private EmpleadoDTO empleado;
+    private CancelacionPagoDTO cancelacionPago;
 
 }

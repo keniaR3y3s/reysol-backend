@@ -43,6 +43,11 @@ public class CorteController {
     public void save(@RequestHeader(HttpHeaders.AUTHORIZATION) String token, @RequestBody CorteDTO corteDTO) throws ServiceLayerException {
         corteService.save(corteDTO, token);
     }
+    @PostMapping(CortePath.DELETE)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@RequestHeader(HttpHeaders.AUTHORIZATION) String token, @RequestBody CorteDTO corteDTO) throws ServiceLayerException {
+        corteService.delete(corteDTO, token);
+    }
 
     @GetMapping(CortePath.FIND_ALL_WITH_PRODUCTS)
     public ResponseEntity<?> findAllWithProducts() throws ServiceLayerException {

@@ -16,4 +16,6 @@ public interface CorteService {
     List<CorteDTO> calculate(Integer idTipoCorte, Integer cantidad, Boolean almacen, String token) throws ServiceLayerException;
 
     List<TipoCorteDTO> findAllWithProducts() throws ServiceLayerException;
+
+    void delete(CorteDTO corteDTO, String token) throws ServiceLayerException;
 }

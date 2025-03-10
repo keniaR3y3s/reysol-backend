@@ -11,19 +11,16 @@ import org.springframework.data.repository.query.Param;
 import com.revoktek.reysol.persistence.entities.Pago;
 
 public interface PagoRepository extends JpaRepository<Pago, Long> {
-
     @Query("""
-            SELECT
-                SUM(pago.monto)
-            FROM Pago pago
-            INNER JOIN  pago.estatusPago estatusPago
-            INNER JOIN  pago.pedido pedido
-            WHERE
-                pedido.idPedido = :idPedido
-                AND
-                estatusPago.idEstatusPago = :idEstatusPago
+                SELECT COALESCE(SUM(pago.monto), 0)
+                FROM Pago pago
+                JOIN pago.estatusPago estatusPago
+                JOIN pago.pedido pedido
+                WHERE pedido.idPedido = :idPedido
+                AND estatusPago.idEstatusPago = :idEstatusPago
             """)
     BigDecimal findAbonadoByPedido(@Param("idPedido") Long idPedido, @Param("idEstatusPago") Integer idEstatusPago);
+
 
     @Query("""
             SELECT p
@@ -35,10 +32,25 @@ public interface PagoRepository extends JpaRepository<Pago, Long> {
     List<Pago> findByPedidoId(Long idPedido);
 
     @Query("""
-        SELECT p
-        FROM Pago p
-        WHERE p.idPago = :idPago
-        """)
+            SELECT p
+            FROM Pago p
+            WHERE p.idPago = :idPago
+            """)
     Optional<Pago> findByPagoId(@Param("idPago") Long idPago);
 
+    @Query("""
+            SELECT p
+            FROM Pago p
+            INNER JOIN FETCH p.cuenta cuenta
+            LEFT JOIN FETCH p.pedido pedido
+            LEFT JOIN FETCH p.metodoPago metodoPago
+            LEFT JOIN FETCH p.formaPago formaPago
+            LEFT JOIN FETCH p.estatusPago estatusPago
+            LEFT JOIN FETCH p.empleado empleado
+            LEFT JOIN FETCH p.cancelacionPago cancelacionPago
+            LEFT JOIN FETCH cancelacionPago.empleado empleadoCancelacion
+            WHERE cuenta.idCuenta = :idCuenta
+            ORDER BY p.fechaRegistro DESC
+            """)
+    List<Pago> findAllByCuenta(Long idCuenta);
 }

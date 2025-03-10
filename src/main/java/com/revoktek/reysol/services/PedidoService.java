@@ -23,4 +23,6 @@ public interface PedidoService {
     void saveDelivery(PedidoDTO pedidoDTO, String token) throws ServiceLayerException;
 
     void save(PedidoDTO pedidoDTO, String token) throws ServiceLayerException;
+
+    List<PedidoDTO> findByCliente(Long idCliente) throws ServiceLayerException;
 }

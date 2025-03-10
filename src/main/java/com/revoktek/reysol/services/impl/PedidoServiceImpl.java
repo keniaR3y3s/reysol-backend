@@ -27,6 +27,7 @@ import com.revoktek.reysol.persistence.repositories.ClienteRepository;
 import com.revoktek.reysol.persistence.repositories.DomicilioRepository;
 import com.revoktek.reysol.persistence.repositories.PedidoRepository;
 import com.revoktek.reysol.services.ClienteService;
+import com.revoktek.reysol.services.CuentaService;
 import com.revoktek.reysol.services.JwtService;
 import com.revoktek.reysol.services.PagoService;
 import com.revoktek.reysol.services.PedidoProductoService;
@@ -34,7 +35,6 @@ import com.revoktek.reysol.services.PedidoService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -59,6 +59,7 @@ public class PedidoServiceImpl implements PedidoService {
     private final MapperUtil mapperUtil;
     private final JwtService jwtService;
     private final PagoService pagoService;
+    private final CuentaService cuentaService;
 
 
     @Override
@@ -416,6 +417,30 @@ public class PedidoServiceImpl implements PedidoService {
             pedido.setClave(prefix + pedido.getIdPedido());
             pedidoRepository.save(pedido);
 
+            cuentaService.updateSaldo(cliente.getIdCliente());
+
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new ServiceLayerException(e);
+        }
+    }
+
+    @Override
+    public List<PedidoDTO> findByCliente(Long idCliente) throws ServiceLayerException {
+        try {
+
+            List<Pedido> pedidos = pedidoRepository.findAllByCliente(idCliente);
+            if (applicationUtil.isEmptyList(pedidos)) {
+                log.info("Sin elementos encontrados.");
+                return Collections.emptyList();
+            }
+            return pedidos.stream().map(pedido -> PedidoDTO.builder()
+                    .idPedido(pedido.getIdPedido())
+                    .clave(pedido.getClave())
+                    .fechaEntrega(pedido.getFechaEntrega())
+                    .fechaSolicitud(pedido.getFechaSolicitud())
+                    .total(pedido.getTotal())
+                    .build()).toList();
 
         } catch (Exception e) {
             log.error(e.getMessage(), e);

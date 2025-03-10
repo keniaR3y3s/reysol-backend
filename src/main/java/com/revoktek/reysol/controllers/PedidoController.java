@@ -37,6 +37,11 @@ public class PedidoController {
         return ResponseEntity.ok(pedidoService.findByID(id));
     }
 
+    @GetMapping(PedidoPath.FIND_BY_CLIENT)
+    public ResponseEntity<?> findByCliente(@RequestParam Long idCliente) throws ServiceLayerException {
+        return ResponseEntity.ok(pedidoService.findByCliente(idCliente));
+    }
+
     @PostMapping(PedidoPath.SAVE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void save(@RequestHeader(HttpHeaders.AUTHORIZATION) String token, @RequestBody PedidoDTO pedidoDTO) throws ServiceLayerException {

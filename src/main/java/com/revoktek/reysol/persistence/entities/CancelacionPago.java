@@ -1,10 +1,10 @@
 package com.revoktek.reysol.persistence.entities;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -17,7 +17,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
 import java.util.Date;
 
 @AllArgsConstructor
@@ -25,40 +24,26 @@ import java.util.Date;
 @Getter
 @Setter
 @Entity
-@Table(name = "transaccion")
-public class Transaccion {
+@Table(name = "cancelacion_pago")
+public class CancelacionPago {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_transaccion")
-    private Long idTransaccion;
+    @Column(name = "id_cancelacion_pago")
+    private Long idCancelacionPago;
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "fecha_registro")
     private Date fechaRegistro;
 
-    @Column(name = "monto")
-    private BigDecimal monto;
+    @Column(name = "motivo")
+    private String motivo;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cuenta_id")
-    private Cuenta cuenta;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tipo_transaccion_id")
-    private TipoTransaccion tipoTransaccion;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "pago_id")
+    private Pago pago;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "empleado_id")
     private Empleado empleado;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pedido_id")
-    private Pedido pedido;
-
-    @OneToOne(mappedBy = "transaccion", fetch = FetchType.LAZY)
-    private Pago pago;
-
-    public Transaccion(Long idTransaccion) {
-        this.idTransaccion = idTransaccion;
-    }
 }

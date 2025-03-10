@@ -205,9 +205,9 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
                 Producto producto = corte.getProducto();
 
                 InventarioDTO inventarioDTO = inventarioService.findOrSaveByProductoAndTipoInventario(producto.getIdProducto(), idTipoInventario, idEmpleado);
-                if (inventarioDTO.getCantidad().compareTo(productoDTO.getCantidadDespachada()) < 0) {
-                    throw new ServiceLayerException("Solo " + inventarioDTO.getCantidad().toPlainString() + " disponible de " + producto.getNombre());
-                }
+//                if (inventarioDTO.getCantidad().compareTo(productoDTO.getCantidadDespachada()) < 0) {
+//                    throw new ServiceLayerException("Solo " + inventarioDTO.getCantidad().toPlainString() + " disponible de " + producto.getNombre());
+//                }
 
                 Inventario inventario = inventarioRepository.findByIdInventario(inventarioDTO.getIdInventario());
 
@@ -348,16 +348,7 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
                 }
 
 
-                BigDecimal precio = pedidoProducto.getPrecio();
-                if (applicationUtil.nonNull(pedidoProducto.getCantidadSolicitada())
-                        && pedidoProducto.getCantidadSolicitada().compareTo(BigDecimal.ZERO) > 0
-                ) {
-                    pedidoProducto.setSubtotal(precio.multiply(pedidoProducto.getCantidadSolicitada()));
-                } else if (applicationUtil.nonNull(pedidoProducto.getPesoSolicitado())
-                        && pedidoProducto.getPesoSolicitado().compareTo(BigDecimal.ZERO) > 0
-                ) {
-                    pedidoProducto.setSubtotal(precio.multiply(pedidoProducto.getPesoSolicitado()));
-                }
+                pedidoProducto.setSubtotal(pedidoProducto.getPrecio().multiply(pedidoProducto.getPesoSolicitado()));
 
                 pedidoProductoRepository.save(pedidoProducto);
 

@@ -1,12 +1,21 @@
 package com.revoktek.reysol.services.impl;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import com.revoktek.reysol.dto.CancelacionPagoDTO;
+import com.revoktek.reysol.dto.CuentaDTO;
+import com.revoktek.reysol.dto.EstatusPedidoDTO;
 import com.revoktek.reysol.dto.MetodoPagoDTO;
-import com.revoktek.reysol.services.TransaccionService;
+import com.revoktek.reysol.persistence.entities.CancelacionPago;
+import com.revoktek.reysol.persistence.entities.Cliente;
+import com.revoktek.reysol.persistence.entities.Cuenta;
+import com.revoktek.reysol.persistence.repositories.CancelacionPagoRepository;
+import com.revoktek.reysol.persistence.repositories.CuentaRepository;
+import com.revoktek.reysol.services.CuentaService;
 import org.springframework.stereotype.Service;
 
 import com.revoktek.reysol.core.enums.EstatusPagoEnum;
@@ -21,7 +30,6 @@ import com.revoktek.reysol.dto.EstatusPagoDTO;
 import com.revoktek.reysol.dto.FormaPagoDTO;
 import com.revoktek.reysol.dto.PagoDTO;
 import com.revoktek.reysol.dto.PedidoDTO;
-import com.revoktek.reysol.dto.TransaccionDTO;
 import com.revoktek.reysol.persistence.entities.Empleado;
 import com.revoktek.reysol.persistence.entities.EstatusPago;
 import com.revoktek.reysol.persistence.entities.EstatusPedido;
@@ -29,7 +37,6 @@ import com.revoktek.reysol.persistence.entities.FormaPago;
 import com.revoktek.reysol.persistence.entities.MetodoPago;
 import com.revoktek.reysol.persistence.entities.Pago;
 import com.revoktek.reysol.persistence.entities.Pedido;
-import com.revoktek.reysol.persistence.entities.Transaccion;
 import com.revoktek.reysol.persistence.repositories.PagoRepository;
 import com.revoktek.reysol.persistence.repositories.PedidoRepository;
 import com.revoktek.reysol.services.JwtService;
@@ -45,25 +52,27 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 public class PagoServiceImpl implements PagoService {
 
-    private final TransaccionService transaccionService;
     private final PedidoRepository pedidoRepository;
     private final MessageProvider messageProvider;
     private final ApplicationUtil applicationUtil;
     private final PagoRepository pagoRepository;
     private final JwtService jwtService;
+    private final CancelacionPagoRepository cancelacionPagoRepository;
+    private final CuentaService cuentaService;
 
     @Override
     @Transactional
     public void savePayment(PagoDTO pagoDTO, String token) throws ServiceLayerException {
         try {
 
+            System.out.println("token: " + token);
             Optional<Pedido> pedidoOptional = pedidoRepository.findById(pagoDTO.getPedido().getIdPedido());
             if (pedidoOptional.isEmpty()) {
                 throw new ServiceLayerException(messageProvider.getMessageNotFound(pagoDTO.getPedido().getIdPedido()));
             }
 
             Pedido pedido = pedidoOptional.get();
-            Date now = new Date();
+            Date now = applicationUtil.isNull(pagoDTO.getFechaRegistro()) ? new Date() : pagoDTO.getFechaRegistro();
             Empleado empleado = jwtService.getEmpleado(token);
             Integer idFormaPago = getFormaPago(pagoDTO);
 
@@ -72,11 +81,8 @@ public class PagoServiceImpl implements PagoService {
                 pedido.setMetodoPago(new MetodoPago(id));
             }
 
-            TransaccionDTO transaccionDTO = new TransaccionDTO();
-            transaccionDTO.setMonto(pagoDTO.getMonto());
-            transaccionDTO.setEmpleado(new EmpleadoDTO(empleado.getIdEmpleado()));
-            transaccionDTO.setPedido(new PedidoDTO(pedido.getIdPedido()));
-            Long idTransaccion = transaccionService.saveChargue(transaccionDTO, null);
+            CuentaDTO cuentaDTO = cuentaService.findOrSaveCuentaByCliente(pedido.getCliente().getIdCliente());
+            Cuenta cuenta = new Cuenta(cuentaDTO.getIdCuenta());
 
 
             Pago pago = new Pago();
@@ -87,7 +93,7 @@ public class PagoServiceImpl implements PagoService {
             pago.setFormaPago(new FormaPago(idFormaPago));
             pago.setEstatusPago(new EstatusPago(EstatusPagoEnum.PAGADO.getValue()));
             pago.setEmpleado(empleado);
-            pago.setTransaccion(new Transaccion(idTransaccion));
+            pago.setCuenta(cuenta);
             pagoRepository.save(pago);
 
 
@@ -103,6 +109,9 @@ public class PagoServiceImpl implements PagoService {
             pedido.setEstatusPedido(new EstatusPedido(estatusPedido));
             pedidoRepository.save(pedido);
 
+            cuentaService.updateSaldo(pedido.getCliente().getIdCliente());
+
+            System.out.println("pedido.getTotal(): "+pedido.getTotal());
 
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -179,10 +188,15 @@ public class PagoServiceImpl implements PagoService {
         }
     }
 
+
     @Override
     @Transactional
-    public void changeEstatusCancel(Long idPago) throws ServiceLayerException {
+    public void changeEstatusCancel(CancelacionPagoDTO ct, String token) throws ServiceLayerException {
         try {
+
+            Long idPago = ct.getPago().getIdPago();
+            String motivo = ct.getMotivo();
+            Empleado empleado = jwtService.getEmpleado(token);
 
             Optional<Pago> pagoBusqueda = pagoRepository.findByPagoId(idPago);
 
@@ -191,11 +205,37 @@ public class PagoServiceImpl implements PagoService {
             }
 
             Pago pago = pagoBusqueda.get();
+            Pedido pedido = pago.getPedido();
+            Cliente cliente = pedido.getCliente();
+
             pago.setEstatusPago(new EstatusPago(EstatusPagoEnum.RECHAZADO.getValue()));
             pagoRepository.save(pago);
 
+            CancelacionPago cancelacionPago = new CancelacionPago();
+            cancelacionPago.setFechaRegistro(new Date());
+            cancelacionPago.setMotivo(motivo);
+            cancelacionPago.setEmpleado(empleado);
+            cancelacionPago.setPago(pago);
+            cancelacionPagoRepository.save(cancelacionPago);
+
+
+            BigDecimal abonado = pagoRepository.findAbonadoByPedido(pedido.getIdPedido(), EstatusPagoEnum.PAGADO.getValue());
+            BigDecimal pendiente = pedido.getTotal().subtract(abonado);
+            boolean compledato = (pendiente.compareTo(BigDecimal.ZERO) <= 0);
+            Integer estatusPedido = compledato ? EstatusPedidoEnum.COBRADO.getValue() : EstatusPedidoEnum.PAGO_INCOMPLETO.getValue();
+
+
+            pedido.setAbonado(abonado);
+            pedido.setPendiente(pendiente);
+            pedido.setEstatusPedidoPrevio(new EstatusPedido(pedido.getEstatusPedido().getIdEstatusPedido()));
+            pedido.setEstatusPedido(new EstatusPedido(estatusPedido));
+            pedidoRepository.save(pedido);
+
+            cuentaService.updateSaldo(pedido.getCliente().getIdCliente());
+
+
         } catch (Exception e) {
-            log.error("Error al rechazar el pago con ID: " + idPago, e);
+            log.error(e.getMessage(), e);
             throw new ServiceLayerException(e);
         }
     }

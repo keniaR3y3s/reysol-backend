@@ -1,5 +1,8 @@
-package com.revoktek.reysol.persistence.entities;
+package com.revoktek.reysol.persistence.repositories;
 
+import com.revoktek.reysol.persistence.entities.Usuario;
+import com.revoktek.reysol.persistence.entities.UsuarioRol;
+import com.revoktek.reysol.persistence.entities.UsuarioRolId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

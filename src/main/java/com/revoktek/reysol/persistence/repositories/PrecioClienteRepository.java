@@ -17,7 +17,7 @@ public interface PrecioClienteRepository extends JpaRepository<PrecioCliente, Lo
                 precioCliente
             FROM PrecioCliente precioCliente
             INNER JOIN FETCH precioCliente.producto producto
-            WHERE precioCliente.cliente = :cliente
+            WHERE precioCliente.cliente = :cliente AND precioCliente.estatus = true
             ORDER BY producto.nombre ASC
             """)
     List<PrecioCliente> findAllByCliente(Cliente cliente);

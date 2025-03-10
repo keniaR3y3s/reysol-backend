@@ -26,7 +26,7 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
                    CONCAT(e.nombre, ' ', e.primerApellido, ' ', COALESCE(e.segundoApellido, ''))
                    ILIKE CONCAT('%', :busqueda, '%')
                  ) OR ( e.alias  ILIKE CONCAT('%', :busqueda, '%')  ) )
-                ORDER BY e.nombre ASC
+                ORDER BY e.alias ASC
             """)
     List<Cliente> findAllByFilter(@Param("busqueda") String busqueda);
 

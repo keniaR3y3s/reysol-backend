@@ -18,9 +18,10 @@ public interface CorteRepository extends JpaRepository<Corte, Long> {
                 corte
             FROM Corte corte
             INNER JOIN FETCH corte.producto producto
+            INNER JOIN FETCH producto.unidadMedida unidadMedida
             WHERE
-               corte.tipoCorte = :tipoCorte
-            ORDER BY producto.nombre ASC 
+               corte.tipoCorte = :tipoCorte AND corte.estatus = true
+            ORDER BY producto.nombre ASC
             """)
     List<Corte> findAllByTipoCorte(@Param("tipoCorte") TipoCorte tipoCorte);
 }

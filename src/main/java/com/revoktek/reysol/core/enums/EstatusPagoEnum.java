@@ -8,8 +8,7 @@ import lombok.Getter;
 public enum EstatusPagoEnum {
 
     PAGADO(1),
-    EN_PROCESO(2),
-    RECHAZADO(3);
+    RECHAZADO(2);
 
     private final Integer value;
 

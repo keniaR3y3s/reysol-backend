@@ -25,6 +25,6 @@ public class CuentaDTO implements Serializable {
     private Date fechaModificacion;
     private BigDecimal saldo;
     private ClienteDTO cliente;
-    private List<TransaccionDTO> transacciones;
+    private List<PagoDTO> pagos;
 
 }

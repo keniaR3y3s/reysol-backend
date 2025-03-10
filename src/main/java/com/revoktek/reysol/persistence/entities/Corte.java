@@ -35,6 +35,9 @@ public class Corte {
     @Column(name = "precio")
     private BigDecimal precio;
 
+    @Column(name = "estatus")
+    private Boolean estatus;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "producto_id")
     private Producto producto;

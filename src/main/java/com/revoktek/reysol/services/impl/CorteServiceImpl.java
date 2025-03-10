@@ -66,7 +66,7 @@ public class CorteServiceImpl implements CorteService {
                 corte.setProducto(producto);
                 corte.setTipoCorte(tipoCorte);
             }
-
+            corte.setEstatus(Boolean.TRUE);
             corte.setCantidad(corteDTO.getCantidad());
             corte.setPrecio(corteDTO.getPrecio());
             corteRepository.save(corte);
@@ -235,6 +235,19 @@ public class CorteServiceImpl implements CorteService {
 
             return tipoCorteDTOS;
 
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new ServiceLayerException(e);
+        }
+    }
+
+    @Override
+    public void delete(CorteDTO corteDTO, String token) throws ServiceLayerException {
+        try {
+
+            Corte corte = corteRepository.findById(corteDTO.getIdCorte()).orElseThrow(() -> new ServiceLayerException("El corte no existe"));
+            corte.setEstatus(Boolean.FALSE);
+            corteRepository.save(corte);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new ServiceLayerException(e);

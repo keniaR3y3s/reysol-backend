@@ -123,7 +123,7 @@ public class ProductoServiceImpl implements ProductoService {
             Cliente cliente = new Cliente(precioClienteDTO.getCliente().getIdCliente());
             Producto producto = new Producto(precioClienteDTO.getProducto().getIdProducto());
 
-            PrecioCliente precioCliente = precioClienteRepository.findByProductoAndClienteAndEstatus(producto, cliente, Boolean.TRUE);
+            PrecioCliente precioCliente = precioClienteRepository.findByProductoAndClienteAndEstatus(producto, cliente,Boolean.TRUE);
 
             if (applicationUtil.isNull(precioCliente)) {
 
@@ -135,7 +135,7 @@ public class ProductoServiceImpl implements ProductoService {
                 precioCliente.setCliente(cliente);
                 precioClienteRepository.save(precioCliente);
 
-            } else if (!precioCliente.getPrecio().equals(precioClienteDTO.getPrecio())) {
+            } else if (precioCliente.getPrecio().compareTo(precioClienteDTO.getPrecio()) != 0) {
                 precioCliente.setEstatus(Boolean.FALSE);
                 precioClienteRepository.save(precioCliente);
 
