@@ -96,27 +96,34 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public TokenDTO login(UsuarioDTO usuarioDTO) {
-        log.info("login.usuarioDTO:{}", usuarioDTO);
-        Optional<Usuario> optional = usuarioRepository.findByUsuario(usuarioDTO.getUsuario());
-        if (optional.isEmpty()) {
-            throw new ServiceLayerException(messageProvider.getMessageNotFound(usuarioDTO.getUsuario()));
-        }
-        Usuario usuario = optional.get();
-        String token = jwtService.generateToken(usuario);
-        String refresh = jwtService.refreshToken(usuario);
-        Long expiration = jwtService.getExpiration();
-        Long idEmpleado = jwtService.getEmpleado(token).getIdEmpleado();
+        try {
+            log.info("login.usuarioDTO:{}", usuarioDTO);
+            Optional<Usuario> optional = usuarioRepository.findByUsuario(usuarioDTO.getUsuario());
+            if (optional.isEmpty()) {
+                throw new ServiceLayerException(messageProvider.getMessageNotFound(usuarioDTO.getUsuario()));
+            }
+            Usuario usuario = optional.get();
+            String token = jwtService.generateToken(usuario);
+            String refresh = jwtService.refreshToken(usuario);
+            Long expiration = jwtService.getExpiration();
+            Long idEmpleado = jwtService.getEmpleado(token).getIdEmpleado();
 
-        List<RolDTO> roles = new ArrayList<>();
-        List<UsuarioRol> usuarioRolList = usuarioRolRepository.findAllByUsuario(usuario);
-        for(UsuarioRol usuarioRol : usuarioRolList){
-            RolDTO rolDTO = new RolDTO();
-            rolDTO.setIdRol(usuarioRol.getRol().getIdRol());
-            rolDTO.setNombre(usuarioRol.getRol().getNombre());
-            rolDTO.setDescripcion(usuarioRol.getRol().getDescripcion());
-            roles.add(rolDTO);
+            List<RolDTO> roles = new ArrayList<>();
+            List<UsuarioRol> usuarioRolList = usuarioRolRepository.findAllByUsuario(usuario);
+            for (UsuarioRol usuarioRol : usuarioRolList) {
+                RolDTO rolDTO = new RolDTO();
+                rolDTO.setIdRol(usuarioRol.getRol().getIdRol());
+                rolDTO.setNombre(usuarioRol.getRol().getNombre());
+                rolDTO.setDescripcion(usuarioRol.getRol().getDescripcion());
+                roles.add(rolDTO);
+            }
+            TokenDTO tokenDTO = new TokenDTO(token, refresh, expiration, idEmpleado, roles);
+            System.out.println(tokenDTO.toString());
+            return tokenDTO;
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new ServiceLayerException(e);
         }
-        return new TokenDTO(token, refresh, expiration, idEmpleado, roles);
     }
 
     @Override

@@ -5,9 +5,9 @@ spring:
     resources:
       add-mappings: false
   datasource:
-    url: jdbc:mysql://localhost:3306/reysol?useSSL=false
-    username: mediuser
-    password: Medi2022
+    url: jdbc:mysql://localhost:3306/carniceria?useSSL=false
+    username: root
+    password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:

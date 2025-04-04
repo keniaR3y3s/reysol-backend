@@ -5,8 +5,14 @@ import org.springframework.stereotype.Component;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -96,5 +102,19 @@ public class ApplicationUtil {
         }
         return "";
 
+    }
+
+    public String formatDate(Date date, int type) {
+        SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
+        return format.format(date);
+    }
+
+    public String formatMoney(BigDecimal bd) {
+        NumberFormat formatoMoneda = NumberFormat.getCurrencyInstance(new Locale("es", "MX")); // Formato en pesos mexicanos
+        BigDecimal bdMoneda = bd.setScale(2, BigDecimal.ROUND_HALF_UP);
+       return formatoMoneda.format(bdMoneda);
+    }
+    public String formatBigDecimal(BigDecimal bd) {
+        return bd.setScale(2, RoundingMode.HALF_UP).toPlainString();
     }
 }

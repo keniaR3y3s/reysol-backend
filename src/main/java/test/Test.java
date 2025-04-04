@@ -7,7 +7,7 @@ import java.util.Base64;
 
 public class Test {
 
-    public static void main(String[] args) {
+    public static void mainKey(String[] args) {
 
 
         // Genera una clave de 256 bits (32 bytes)
@@ -19,6 +19,10 @@ public class Test {
         // Imprime la clave en base64
         System.out.println("Clave base64 generada: " + base64Key);
 
+
+    }
+
+    public static void main(String[] args) {
 
     }
 
