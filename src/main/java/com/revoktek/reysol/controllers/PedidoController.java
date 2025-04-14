@@ -37,6 +37,11 @@ public class PedidoController {
         return ResponseEntity.ok(pedidoService.findByID(id));
     }
 
+    @GetMapping(PedidoPath.FIND_ALL_BY_EMPLEADO_ENTREGA)
+    public ResponseEntity<?> findAllByEmpleadoEntrega(@RequestParam Long idEmpleado) throws ServiceLayerException {
+        return ResponseEntity.ok(pedidoService.findAllByEmpleadoEntrega(idEmpleado));
+    }
+
     @GetMapping(PedidoPath.FIND_BY_CLIENT)
     public ResponseEntity<?> findByCliente(@RequestParam Long idCliente) throws ServiceLayerException {
         return ResponseEntity.ok(pedidoService.findByCliente(idCliente));

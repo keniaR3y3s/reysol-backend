@@ -28,8 +28,8 @@ public class ClienteController {
 
 
     @GetMapping(ClientePath.FIND_ALL_BY_FILTER)
-    public ResponseEntity<?> findAllByFilter(@RequestParam(required = false) String busqueda) throws ServiceLayerException {
-        return ResponseEntity.ok(clienteService.findAllByFilter(busqueda));
+    public ResponseEntity<?> findAllByFilter(@RequestParam(required = false) String busqueda, @RequestParam(required = false) Integer estatus ) throws ServiceLayerException {
+        return ResponseEntity.ok(clienteService.findAllByFilter(busqueda, estatus));
     }
 
     @GetMapping(ClientePath.FIND_BY_ID)

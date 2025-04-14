@@ -98,7 +98,7 @@ public class AuthServiceImpl implements AuthService {
     public TokenDTO login(UsuarioDTO usuarioDTO) {
         try {
             log.info("login.usuarioDTO:{}", usuarioDTO);
-            Optional<Usuario> optional = usuarioRepository.findByUsuario(usuarioDTO.getUsuario());
+            Optional<Usuario> optional = usuarioRepository.findByUsuarioAndEstatus(usuarioDTO.getUsuario(), Boolean.TRUE);
             if (optional.isEmpty()) {
                 throw new ServiceLayerException(messageProvider.getMessageNotFound(usuarioDTO.getUsuario()));
             }

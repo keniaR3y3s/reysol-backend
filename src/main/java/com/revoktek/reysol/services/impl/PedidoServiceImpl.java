@@ -38,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -111,6 +112,25 @@ public class PedidoServiceImpl implements PedidoService {
                             .descripcion(estatusPedido.getDescripcion())
                             .build();
                     pedidoDTO.setEstatusPedido(estatusPedidoDTO);
+                }
+                Empleado empleadoEntrega = pedido.getEmpleadoEntrega();
+                if (applicationUtil.nonNull(empleadoEntrega)) {
+                    EmpleadoDTO empleadoEntregaDTO = EmpleadoDTO.builder()
+                            .idEmpleado(empleadoEntrega.getIdEmpleado())
+                            .nombre(empleadoEntrega.getNombre())
+                            .primerApellido(empleadoEntrega.getPrimerApellido())
+                            .segundoApellido(empleadoEntrega.getSegundoApellido())
+                            .build();
+                    pedidoDTO.setEmpleadoEntrega(empleadoEntregaDTO);
+                }
+
+                Ruta ruta = pedido.getRuta();
+                if (applicationUtil.nonNull(ruta)) {
+                    RutaDTO rutaDTO = RutaDTO.builder()
+                            .idRuta(ruta.getIdRuta())
+                            .nombre(ruta.getNombre())
+                            .build();
+                    pedidoDTO.setRuta(rutaDTO);
                 }
                 return pedidoDTO;
             }).toList();
@@ -442,6 +462,53 @@ public class PedidoServiceImpl implements PedidoService {
                     .total(pedido.getTotal())
                     .build()).toList();
 
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new ServiceLayerException(e);
+        }
+    }
+
+    @Override
+    public List<PedidoDTO> findAllByEmpleadoEntrega(Long idEmpleado) throws ServiceLayerException {
+        try {
+
+            List<Pedido> pedidos = pedidoRepository.findAllByEmpleadoEntrega(idEmpleado);
+            if (applicationUtil.isEmptyList(pedidos)) {
+                log.info("Sin elementos encontrados.");
+                return Collections.emptyList();
+            }
+            List<PedidoDTO> pedidoDTOS = new ArrayList<>();
+            for (Pedido pedido : pedidos) {
+                Ruta ruta = pedido.getRuta();
+                RutaDTO rutaDTO = RutaDTO.builder()
+                        .idRuta(ruta.getIdRuta())
+                        .nombre(ruta.getNombre())
+                        .build();
+
+
+                Cliente cliente = pedido.getCliente();
+                ClienteDTO clienteDTO = ClienteDTO.builder().
+                        idCliente(cliente.getIdCliente())
+                        .alias(cliente.getAlias())
+                        .nombre(cliente.getNombre())
+                        .primerApellido(cliente.getPrimerApellido())
+                        .segundoApellido(cliente.getSegundoApellido())
+                        .build();
+
+                PedidoDTO pedidoDTO = PedidoDTO.builder()
+                        .idPedido(pedido.getIdPedido())
+                        .clave(pedido.getClave())
+                        .fechaEntrega(pedido.getFechaEntrega())
+                        .fechaSolicitud(pedido.getFechaSolicitud())
+                        .total(pedido.getTotal())
+                        .ruta(rutaDTO)
+                        .cliente(clienteDTO)
+                        .build();
+
+                pedidoDTOS.add(pedidoDTO);
+
+            }
+            return pedidoDTOS;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new ServiceLayerException(e);

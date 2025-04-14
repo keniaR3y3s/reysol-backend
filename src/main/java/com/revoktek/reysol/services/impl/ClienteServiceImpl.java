@@ -46,11 +46,11 @@ public class ClienteServiceImpl implements ClienteService {
 
 
     @Override
-    public List<ClienteDTO> findAllByFilter(String busqueda) throws ServiceLayerException {
+    public List<ClienteDTO> findAllByFilter(String busqueda, Integer estatus) throws ServiceLayerException {
         try {
 
 //            Integer idTipoCliente = TipoClienteEnum.REGULAR.getValue();
-            List<Cliente> clientes = clienteRepository.findAllByFilter(busqueda);
+            List<Cliente> clientes = clienteRepository.findAllByFilter(busqueda, estatus);
 
             if (applicationUtil.isEmptyList(clientes)) {
                 log.info("Sin elementos encontrados.");

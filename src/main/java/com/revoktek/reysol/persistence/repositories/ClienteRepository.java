@@ -22,12 +22,12 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
                 LEFT JOIN FETCH e.ruta ruta
                 LEFT JOIN FETCH e.contacto contacto
                 LEFT JOIN FETCH e.domicilio domicilio
-                WHERE ( (:busqueda IS NULL) OR (
-                   CONCAT(e.nombre, ' ', e.primerApellido, ' ', COALESCE(e.segundoApellido, ''))
-                   ILIKE CONCAT('%', :busqueda, '%')
+                WHERE ( (:busqueda IS NULL) OR (CONCAT(e.nombre, ' ', e.primerApellido, ' ', COALESCE(e.segundoApellido, ''))
+                            ILIKE CONCAT('%', :busqueda, '%')
                  ) OR ( e.alias  ILIKE CONCAT('%', :busqueda, '%')  ) )
+                             AND ( (:estatus IS NULL) OR (e.estatus = :estatus) )
                 ORDER BY e.alias ASC
             """)
-    List<Cliente> findAllByFilter(@Param("busqueda") String busqueda);
+    List<Cliente> findAllByFilter(@Param("busqueda") String busqueda, @Param("estatus") Integer estatus);
 
 }

@@ -56,4 +56,17 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
             ORDER BY pedido.fechaSolicitud DESC
             """)
     List<Pedido> findAllByCliente(Long idCliente);
+
+    @Query("""
+            SELECT
+                pedido
+            FROM Pedido pedido
+            INNER JOIN FETCH pedido.empleadoEntrega empleadoEntrega
+            INNER JOIN FETCH pedido.cliente cliente
+            INNER JOIN FETCH pedido.ruta ruta
+            WHERE
+                ( empleadoEntrega.idEmpleado = :idEmpleado )
+            ORDER BY pedido.fechaSolicitud DESC
+            """)
+    List<Pedido> findAllByEmpleadoEntrega(Long idEmpleado);
 }
