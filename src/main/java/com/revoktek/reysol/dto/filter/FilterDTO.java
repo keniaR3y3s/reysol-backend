@@ -23,5 +23,6 @@ public class FilterDTO {
     private Date fechaFin;
     private Integer estatus;
     private List<Integer> estatusList;
+    private List<Integer> estatusPagoList;
 
 }

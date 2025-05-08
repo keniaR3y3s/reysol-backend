@@ -11,11 +11,7 @@ public enum EstatusPedidoEnum {
     DESPACHADO(2),
     ASIGNADO(3),
     ENTREGADO(4),
-    AUTORIZADO_COBRO(5),
-    COBRADO(6),
-    PENDIENTE_DE_COBRO(7),
-    PAGO_INCOMPLETO(8),
-    CANCELADO(7);
+    CANCELADO(5);
 
     private final Integer value;
 

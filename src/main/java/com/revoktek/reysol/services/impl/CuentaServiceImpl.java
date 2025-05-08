@@ -232,7 +232,7 @@ public class CuentaServiceImpl implements CuentaService {
         }
 
         List<Integer> estatusList = Arrays.asList(
-                EstatusPedidoEnum.COBRADO.getValue(),
+                EstatusPedidoEnum.ENTREGADO.getValue(),
                 EstatusPedidoEnum.CANCELADO.getValue()
         );
 

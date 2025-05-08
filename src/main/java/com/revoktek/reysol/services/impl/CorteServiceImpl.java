@@ -15,6 +15,7 @@ import com.revoktek.reysol.persistence.entities.Empleado;
 import com.revoktek.reysol.persistence.entities.Producto;
 import com.revoktek.reysol.persistence.entities.Sacrificio;
 import com.revoktek.reysol.persistence.entities.TipoCorte;
+import com.revoktek.reysol.persistence.entities.UnidadMedida;
 import com.revoktek.reysol.persistence.repositories.CalculoSacrificioRepository;
 import com.revoktek.reysol.persistence.repositories.CorteHistorialRepository;
 import com.revoktek.reysol.persistence.repositories.CorteRepository;
@@ -56,9 +57,25 @@ public class CorteServiceImpl implements CorteService {
     @Transactional
     public void save(CorteDTO corteDTO, String token) throws ServiceLayerException {
         try {
+            ProductoDTO productoDTO = corteDTO.getProducto();
+            Producto producto;
+            if (productoDTO.getIdProducto() == null || productoDTO.getIdProducto() == 0) {
+                producto = productoRepository.findByNombre(productoDTO.getNombre());
+                if(producto == null) {
+                    UnidadMedida unidadMedida = new UnidadMedida();
+                    unidadMedida.setIdUnidadMedida(1L);
+                    producto = new Producto();
+                    producto.setNombre(productoDTO.getNombre());
+                    producto.setDescripcion(applicationUtil.isEmpty(productoDTO.getDescripcion()) ? productoDTO.getNombre() : productoDTO.getDescripcion());
+                    producto.setEstatus(Boolean.TRUE);
+                    producto.setUnidadMedida(unidadMedida);
+                    productoRepository.save(producto);
+                }
+            } else {
+                producto = productoRepository.findByIdProducto(productoDTO.getIdProducto());
+            }
 
             TipoCorte tipoCorte = tipoCorteRepository.findByIdTipoCorte(corteDTO.getTipoCorte().getIdTipoCorte());
-            Producto producto = productoRepository.findByIdProducto(corteDTO.getProducto().getIdProducto());
             Corte corte = corteRepository.findByProductoAndTipoCorte(producto, tipoCorte);
 
             if (applicationUtil.isNull(corte)) {

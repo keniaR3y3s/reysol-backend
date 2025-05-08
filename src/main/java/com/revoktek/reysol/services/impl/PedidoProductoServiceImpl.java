@@ -105,14 +105,14 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
                         .idPedidoProducto(pedidoProducto.getIdPedidoProducto())
                         .precio(pedidoProducto.getPrecio())
                         .cantidadSolicitada(pedidoProducto.getCantidadSolicitada())
+                        .pesoSolicitado(pedidoProducto.getPesoSolicitado())
                         .cantidadDespachada(pedidoProducto.getCantidadDespachada())
-                        .diferencia(pedidoProducto.getDiferencia())
                         .pesoDespachado(pedidoProducto.getPesoDespachado())
                         .pesoEntregado(pedidoProducto.getPesoEntregado())
                         .cantidadEntregada(pedidoProducto.getCantidadEntregada())
                         .cantidadFrias(pedidoProducto.getCantidadFrias())
-                        .pesoSolicitado(pedidoProducto.getPesoSolicitado())
                         .subtotal(pedidoProducto.getSubtotal())
+                        .diferencia(pedidoProducto.getDiferencia())
                         .producto(productoDTO)
                         .build();
 
@@ -148,15 +148,17 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
 
 
                 InventarioDTO inventarioDTO = inventarioService.findOrSaveByProductoAndTipoInventario(idProducto, idTipoInventario, idEmpleado);
-                if (inventarioDTO.getCantidad().compareTo(productoDTO.getCantidadDespachada()) < 0) {
+                /*if (inventarioDTO.getCantidad().compareTo(productoDTO.getCantidadDespachada()) < 0) {
                     throw new ServiceLayerException("Solo " + inventarioDTO.getCantidad().toPlainString() + " disponible de " + pedidoProducto.getProducto().getNombre());
-                }
+                }*/
+
 
                 Inventario inventario = inventarioRepository.findByIdInventario(inventarioDTO.getIdInventario());
 
                 pedidoProducto.setCantidadDespachada(productoDTO.getCantidadDespachada());
                 pedidoProducto.setPesoDespachado(productoDTO.getPesoDespachado());
                 pedidoProducto.setInventario(inventario);
+                pedidoProducto.setDiferencia(pedidoProducto.getPesoSolicitado().subtract(pedidoProducto.getPesoDespachado()));
                 pedidoProductoRepository.save(pedidoProducto);
 
 
@@ -276,6 +278,8 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
 
                 PedidoProducto pedidoProducto = optional.get();
                 pedidoProducto.setPesoEntregado(productoDTO.getPesoEntregado());
+                pedidoProducto.setCantidadEntregada(productoDTO.getCantidadEntregada());
+                pedidoProducto.setDiferencia(pedidoProducto.getPesoDespachado().subtract(pedidoProducto.getPesoEntregado()));
                 pedidoProductos.add(pedidoProducto);
             }
 

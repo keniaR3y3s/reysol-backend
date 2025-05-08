@@ -10,8 +10,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -63,8 +61,9 @@ public class Pedido {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "estatus_pedido_id")
-    private EstatusPedido estatusPedido;    @ManyToOne(fetch = FetchType.LAZY)
+    private EstatusPedido estatusPedido;
 
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "estatus_pedido_previo_id")
     private EstatusPedido estatusPedidoPrevio;
 
@@ -88,6 +87,10 @@ public class Pedido {
     @JoinColumn(name = "ruta_id")
     @IgnoreMapping
     private Ruta ruta;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "estatus_pago_id")
+    private EstatusPago estatusPago;
 
     public Pedido(Long idPedido) {
         this.idPedido = idPedido;

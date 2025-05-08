@@ -16,4 +16,5 @@ import java.io.Serializable;
 public class EstatusPagoDTO implements Serializable {
     private Integer idEstatusPago;
     private String nombre;
+    private String descripcion;
 }

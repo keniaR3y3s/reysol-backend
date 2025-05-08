@@ -74,6 +74,7 @@ public class PagoServiceImpl implements PagoService {
             Pedido pedido = pedidoOptional.get();
             Date now = applicationUtil.isNull(pagoDTO.getFechaRegistro()) ? new Date() : pagoDTO.getFechaRegistro();
             Empleado empleado = jwtService.getEmpleado(token);
+            System.out.println("empleado: "+empleado);
             Integer idFormaPago = getFormaPago(pagoDTO);
 
             if (applicationUtil.isNull(pedido.getMetodoPago())) {
@@ -91,27 +92,30 @@ public class PagoServiceImpl implements PagoService {
             pago.setPedido(pedido);
             pago.setMetodoPago(pedido.getMetodoPago());
             pago.setFormaPago(new FormaPago(idFormaPago));
-            pago.setEstatusPago(new EstatusPago(EstatusPagoEnum.PAGADO.getValue()));
+            pago.setEstatusPago(new EstatusPago(EstatusPagoEnum.PAGO_COMPLETO.getValue()));
             pago.setEmpleado(empleado);
             pago.setCuenta(cuenta);
             pagoRepository.save(pago);
 
+            List<Integer> statusList = Arrays.asList(EstatusPagoEnum.PAGO_COMPLETO.getValue(), EstatusPagoEnum.PAGO_INCOMPLETO.getValue());
+            BigDecimal abonado = pagoRepository.findAbonadoByPedido(pedido.getIdPedido(), statusList);
 
-            BigDecimal abonado = pagoRepository.findAbonadoByPedido(pedido.getIdPedido(), EstatusPagoEnum.PAGADO.getValue());
             BigDecimal pendiente = pedido.getTotal().subtract(abonado);
-            boolean compledato = (pendiente.compareTo(BigDecimal.ZERO) <= 0);
-            Integer estatusPedido = compledato ? EstatusPedidoEnum.COBRADO.getValue() : EstatusPedidoEnum.PAGO_INCOMPLETO.getValue();
+            boolean completado = (pendiente.compareTo(BigDecimal.ZERO) <= 0);
+            Integer estatusPago = completado ? EstatusPagoEnum.PAGO_COMPLETO.getValue() : EstatusPagoEnum.PAGO_INCOMPLETO.getValue();
+
+            pago.setEstatusPago(new EstatusPago(estatusPago));
+            pagoRepository.save(pago);
 
 
             pedido.setAbonado(abonado);
             pedido.setPendiente(pendiente);
-            pedido.setEstatusPedidoPrevio(new EstatusPedido(pedido.getEstatusPedido().getIdEstatusPedido()));
-            pedido.setEstatusPedido(new EstatusPedido(estatusPedido));
+            pedido.setEstatusPago(new EstatusPago(estatusPago));
             pedidoRepository.save(pedido);
 
             cuentaService.updateSaldo(pedido.getCliente().getIdCliente());
 
-            System.out.println("pedido.getTotal(): "+pedido.getTotal());
+            System.out.println("pedido.getTotal(): " + pedido.getTotal());
 
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -172,6 +176,18 @@ public class PagoServiceImpl implements PagoService {
                                             .idEstatusPago(pago.getEstatusPago().getIdEstatusPago())
                                             .nombre(pago.getEstatusPago().getNombre())
                                             .build() : null)
+                            .cancelacionPago(pago.getCancelacionPago() != null ?
+                                    CancelacionPagoDTO.builder()
+                                            .idCancelacionPago(pago.getCancelacionPago().getIdCancelacionPago())
+                                            .fechaRegistro(pago.getCancelacionPago().getFechaRegistro())
+                                            .motivo(pago.getCancelacionPago().getMotivo())
+                                            .empleado(EmpleadoDTO.builder()
+                                                            .idEmpleado(pago.getCancelacionPago().getEmpleado().getIdEmpleado())
+                                                            .nombre(pago.getCancelacionPago().getEmpleado().getNombre())
+                                                            .primerApellido(pago.getCancelacionPago().getEmpleado().getPrimerApellido())
+                                                            .segundoApellido(pago.getCancelacionPago().getEmpleado().getPrimerApellido())
+                                                            .build() )
+                                            .build() : null)
                             .empleado(pago.getEmpleado() != null ?
                                     EmpleadoDTO.builder()
                                             .idEmpleado(pago.getEmpleado().getIdEmpleado())
@@ -206,9 +222,8 @@ public class PagoServiceImpl implements PagoService {
 
             Pago pago = pagoBusqueda.get();
             Pedido pedido = pago.getPedido();
-            Cliente cliente = pedido.getCliente();
 
-            pago.setEstatusPago(new EstatusPago(EstatusPagoEnum.RECHAZADO.getValue()));
+            pago.setEstatusPago(new EstatusPago(EstatusPagoEnum.PAGO_CANCELADO.getValue()));
             pagoRepository.save(pago);
 
             CancelacionPago cancelacionPago = new CancelacionPago();
@@ -218,21 +233,41 @@ public class PagoServiceImpl implements PagoService {
             cancelacionPago.setPago(pago);
             cancelacionPagoRepository.save(cancelacionPago);
 
+            List<Integer> statusList = Arrays.asList(EstatusPagoEnum.PAGO_COMPLETO.getValue(), EstatusPagoEnum.PAGO_INCOMPLETO.getValue());
+            BigDecimal abonado = pagoRepository.findAbonadoByPedido(pedido.getIdPedido(), statusList);
 
-            BigDecimal abonado = pagoRepository.findAbonadoByPedido(pedido.getIdPedido(), EstatusPagoEnum.PAGADO.getValue());
             BigDecimal pendiente = pedido.getTotal().subtract(abonado);
-            boolean compledato = (pendiente.compareTo(BigDecimal.ZERO) <= 0);
-            Integer estatusPedido = compledato ? EstatusPedidoEnum.COBRADO.getValue() : EstatusPedidoEnum.PAGO_INCOMPLETO.getValue();
+            boolean completado = (pendiente.compareTo(BigDecimal.ZERO) <= 0);
+            Integer estatusPago = completado ? EstatusPagoEnum.PAGO_COMPLETO.getValue() : EstatusPagoEnum.PAGO_INCOMPLETO.getValue();
 
+            if(!completado && abonado.compareTo(BigDecimal.ZERO) == 0){
+                estatusPago = EstatusPagoEnum.PAGO_CANCELADO.getValue();
+            }
 
             pedido.setAbonado(abonado);
             pedido.setPendiente(pendiente);
-            pedido.setEstatusPedidoPrevio(new EstatusPedido(pedido.getEstatusPedido().getIdEstatusPedido()));
-            pedido.setEstatusPedido(new EstatusPedido(estatusPedido));
+            pedido.setEstatusPago(new EstatusPago(estatusPago));
             pedidoRepository.save(pedido);
 
             cuentaService.updateSaldo(pedido.getCliente().getIdCliente());
 
+
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new ServiceLayerException(e);
+        }
+    }
+
+   @Override
+    @Transactional
+    public void changeEstatusAuthorized(PedidoDTO pedidoDTO, String token) throws ServiceLayerException {
+        try {
+
+            EstatusPago estatusPago = new EstatusPago(EstatusPagoEnum.AUTORIZADO_COBRO.getValue());
+            Pedido pedido = pedidoRepository.findByIdPedido(pedidoDTO.getIdPedido());
+
+            pedido.setEstatusPago(estatusPago);
+            pedidoRepository.save(pedido);
 
         } catch (Exception e) {
             log.error(e.getMessage(), e);

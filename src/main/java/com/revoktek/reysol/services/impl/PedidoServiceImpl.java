@@ -1,5 +1,6 @@
 package com.revoktek.reysol.services.impl;
 
+import com.revoktek.reysol.core.enums.EstatusPagoEnum;
 import com.revoktek.reysol.core.enums.EstatusPedidoEnum;
 import com.revoktek.reysol.core.enums.TipoClienteEnum;
 import com.revoktek.reysol.core.exceptions.ServiceLayerException;
@@ -9,6 +10,7 @@ import com.revoktek.reysol.core.utils.MapperUtil;
 import com.revoktek.reysol.dto.ClienteDTO;
 import com.revoktek.reysol.dto.DomicilioDTO;
 import com.revoktek.reysol.dto.EmpleadoDTO;
+import com.revoktek.reysol.dto.EstatusPagoDTO;
 import com.revoktek.reysol.dto.EstatusPedidoDTO;
 import com.revoktek.reysol.dto.MetodoPagoDTO;
 import com.revoktek.reysol.dto.PagoDTO;
@@ -19,6 +21,7 @@ import com.revoktek.reysol.dto.filter.FilterPedidoDTO;
 import com.revoktek.reysol.persistence.entities.Cliente;
 import com.revoktek.reysol.persistence.entities.Domicilio;
 import com.revoktek.reysol.persistence.entities.Empleado;
+import com.revoktek.reysol.persistence.entities.EstatusPago;
 import com.revoktek.reysol.persistence.entities.EstatusPedido;
 import com.revoktek.reysol.persistence.entities.MetodoPago;
 import com.revoktek.reysol.persistence.entities.Pedido;
@@ -42,6 +45,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 
@@ -72,12 +76,14 @@ public class PedidoServiceImpl implements PedidoService {
             log.info("findAllByFiltro.filterPedido : {}", filterPedido);
 
             List<Integer> estatusList = (applicationUtil.isEmptyList(filterPedido.getEstatusList()) ? null : filterPedido.getEstatusList());
+            List<Integer> estatusPagoList = (applicationUtil.isEmptyList(filterPedido.getEstatusPagoList()) ? null : filterPedido.getEstatusPagoList());
 
             List<Pedido> pedidos = pedidoRepository.findAllByFilter(
                     filterPedido.getFechaInicio(),
                     filterPedido.getFechaFin(),
                     filterPedido.getIdRuta(),
                     estatusList,
+                    estatusPagoList,
                     filterPedido.getIdEmpleadoEntrega(),
                     filterPedido.getBusqueda(),
                     filterPedido.getIdTipoCliente()
@@ -104,6 +110,7 @@ public class PedidoServiceImpl implements PedidoService {
                             .build();
                     pedidoDTO.setCliente(clienteDTO);
                 }
+
                 EstatusPedido estatusPedido = pedido.getEstatusPedido();
                 if (applicationUtil.nonNull(estatusPedido)) {
                     EstatusPedidoDTO estatusPedidoDTO = EstatusPedidoDTO.builder()
@@ -113,6 +120,17 @@ public class PedidoServiceImpl implements PedidoService {
                             .build();
                     pedidoDTO.setEstatusPedido(estatusPedidoDTO);
                 }
+
+                EstatusPago estatusPago = pedido.getEstatusPago();
+                if (applicationUtil.nonNull(estatusPago)) {
+                    EstatusPagoDTO estatusPagoDTO = EstatusPagoDTO.builder()
+                            .idEstatusPago(estatusPago.getIdEstatusPago())
+                            .nombre(estatusPago.getNombre())
+                            .descripcion(estatusPago.getDescripcion())
+                            .build();
+                    pedidoDTO.setEstatusPago(estatusPagoDTO);
+                }
+
                 Empleado empleadoEntrega = pedido.getEmpleadoEntrega();
                 if (applicationUtil.nonNull(empleadoEntrega)) {
                     EmpleadoDTO empleadoEntregaDTO = EmpleadoDTO.builder()
@@ -228,6 +246,17 @@ public class PedidoServiceImpl implements PedidoService {
                 pedidoDTO.setEstatusPedido(estatusPedidoDTO);
             }
 
+
+            EstatusPago estatusPago = pedido.getEstatusPago();
+            if (applicationUtil.nonNull(estatusPago)) {
+                EstatusPagoDTO estatusPagoDTO = EstatusPagoDTO.builder()
+                        .idEstatusPago(estatusPago.getIdEstatusPago())
+                        .nombre(estatusPago.getNombre())
+                        .descripcion(estatusPago.getDescripcion())
+                        .build();
+                pedidoDTO.setEstatusPago(estatusPagoDTO);
+            }
+
             List<PedidoProductoDTO> productos = pedidoProductoService.findAllByProducto(pedido.getIdPedido());
             pedidoDTO.setProductos(productos);
 
@@ -257,8 +286,10 @@ public class PedidoServiceImpl implements PedidoService {
             Pedido pedido = pedidoOptional.get();
             pedido.setFechaDespacha(new Date());
             pedido.setEmpleadoDespacha(empleadoDespacha);
-            pedido.setEstatusPedidoPrevio(new EstatusPedido(pedido.getEstatusPedido().getIdEstatusPedido()));
-            pedido.setEstatusPedido(estatusDespachado);
+            if (Objects.equals(EstatusPedidoEnum.PENDIENTE.getValue(), pedido.getEstatusPedido().getIdEstatusPedido())) {
+                pedido.setEstatusPedidoPrevio(new EstatusPedido(pedido.getEstatusPedido().getIdEstatusPedido()));
+                pedido.setEstatusPedido(estatusDespachado);
+            }
 
             pedidoRepository.save(pedido);
 
@@ -281,6 +312,7 @@ public class PedidoServiceImpl implements PedidoService {
             Empleado empleado = jwtService.getEmpleado(token);
 
             EstatusPedido estatusEntregado = new EstatusPedido(EstatusPedidoEnum.ENTREGADO.getValue());
+            EstatusPago estatusPago = new EstatusPago(EstatusPagoEnum.PAGO_COMPLETO.getValue());
 
             ClienteDTO clienteDTO = clienteServiceImpl.saveExtemporaneo();
             Cliente cliente = new Cliente(clienteDTO.getIdCliente());
@@ -298,6 +330,7 @@ public class PedidoServiceImpl implements PedidoService {
             pedido.setCliente(cliente);
             pedido.setEstatusPedidoPrevio(estatusEntregado);
             pedido.setEstatusPedido(estatusEntregado);
+            pedido.setEstatusPago(estatusPago);
             pedido.setEmpleadoDespacha(empleado);
             pedido.setEmpleadoEntrega(empleado);
             pedidoRepository.save(pedido);
@@ -384,6 +417,7 @@ public class PedidoServiceImpl implements PedidoService {
 
             EstatusPedido estatusPrevio = new EstatusPedido(pedido.getEstatusPedido().getIdEstatusPedido());
             EstatusPedido estatusEntregado = new EstatusPedido(EstatusPedidoEnum.ENTREGADO.getValue());
+            EstatusPago estatusPago = new EstatusPago(EstatusPagoEnum.PENDIENTE_COBRO.getValue());
 
             Empleado empleadoEntrega = jwtService.getEmpleado(token);
 
@@ -391,7 +425,11 @@ public class PedidoServiceImpl implements PedidoService {
             pedido.setEstatusPedido(estatusEntregado);
             pedido.setEstatusPedidoPrevio(estatusPrevio);
             pedido.setEmpleadoEntrega(empleadoEntrega);
+            pedido.setEstatusPago(estatusPago);
 
+            if(applicationUtil.isNull(pedido.getEmpleadoDespacha())){
+                pedido.setEmpleadoDespacha(empleadoEntrega);
+            }
 
             pedidoRepository.save(pedido);
             pedidoProductoService.saveAllDeliveryProducts(pedidoDTO.getProductos());
@@ -410,6 +448,7 @@ public class PedidoServiceImpl implements PedidoService {
 
             Cliente cliente = clienteRepository.findByIdCliente(pedidoDTO.getCliente().getIdCliente());
             EstatusPedido estatusPedido = new EstatusPedido(EstatusPedidoEnum.PENDIENTE.getValue());
+            EstatusPago estatusPago = new EstatusPago(EstatusPagoEnum.NO_ASIGNACION.getValue());
             String prefix = applicationUtil.getPrefixPedido(TipoClienteEnum.REGULAR.getValue());
             Domicilio domicilio = domicilioRepository.findByCliente(cliente);
             Empleado empleado = jwtService.getEmpleado(token);
@@ -422,6 +461,7 @@ public class PedidoServiceImpl implements PedidoService {
             pedido.setCliente(cliente);
             pedido.setEstatusPedidoPrevio(estatusPedido);
             pedido.setEstatusPedido(estatusPedido);
+            pedido.setEstatusPago(estatusPago);
             pedido.setTotal(BigDecimal.ZERO);
             pedido.setAbonado(BigDecimal.ZERO);
             pedido.setPendiente(BigDecimal.ZERO);

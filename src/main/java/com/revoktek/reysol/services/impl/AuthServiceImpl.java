@@ -42,17 +42,17 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public TokenDTO saveUser(UsuarioDTO usuarioDTO) {
+    public TokenDTO saveUser(UsuarioDTO usuarioDTO) throws ServiceLayerException {
         try {
             log.info("saverUser.usuarioDTO:{}", usuarioDTO);
 
             Optional<Usuario> optional = usuarioRepository.findByUsuario(usuarioDTO.getUsuario());
             if (optional.isPresent()) {
-                throw new Exception(messageProvider.getMessageUnique(usuarioDTO.getUsuario()));
+                throw new ServiceLayerException("Usuario previamente registrado");
             }
 
             if (applicationUtil.isEmptyList(usuarioDTO.getRoles())) {
-                throw new Exception("Roles cannot be empty");
+                throw new ServiceLayerException("Ingrese un rol");
             }
 
             Usuario usuario = Usuario.builder()

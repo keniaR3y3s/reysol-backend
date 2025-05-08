@@ -10,22 +10,23 @@ import org.springframework.data.repository.query.Param;
 
 import com.revoktek.reysol.persistence.entities.Pago;
 
-public interface PagoRepository extends JpaRepository<Pago, Long> {
+public interface PagoRepository extends JpaRepository<Pago, Integer> {
     @Query("""
                 SELECT COALESCE(SUM(pago.monto), 0)
                 FROM Pago pago
                 JOIN pago.estatusPago estatusPago
                 JOIN pago.pedido pedido
                 WHERE pedido.idPedido = :idPedido
-                AND estatusPago.idEstatusPago = :idEstatusPago
+                AND estatusPago.idEstatusPago IN (:estatusList)
             """)
-    BigDecimal findAbonadoByPedido(@Param("idPedido") Long idPedido, @Param("idEstatusPago") Integer idEstatusPago);
+    BigDecimal findAbonadoByPedido(@Param("idPedido") Long idPedido, @Param("estatusList") List<Integer> estatusList);
 
 
     @Query("""
             SELECT p
             FROM Pago p
             INNER JOIN FETCH p.pedido pedido
+             LEFT JOIN FETCH p.cancelacionPago cancelacionPago
             WHERE pedido.idPedido = :idPedido
             ORDER BY p.fechaRegistro DESC
             """)

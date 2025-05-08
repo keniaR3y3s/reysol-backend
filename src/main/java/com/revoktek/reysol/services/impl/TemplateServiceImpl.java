@@ -64,7 +64,7 @@ public class TemplateServiceImpl implements TemplateService {
                     products.append("<tr>");
                     products.append("<td>").append(item.getProducto().getNombre()).append("</td>");
                     products.append("<td>").append(applicationUtil.formatBigDecimal(item.getCantidadSolicitada())).append("</td>");
-                    products.append("<td>").append(applicationUtil.formatBigDecimal(item.getPesoDespachado())).append("kg</td>");
+                    products.append("<td>").append(applicationUtil.formatBigDecimal(item.getPesoEntregado())).append("kg</td>");
                     products.append("<td>").append(applicationUtil.formatMoney(item.getPrecio())).append("</td>");
                     products.append("<tr>");
                 }

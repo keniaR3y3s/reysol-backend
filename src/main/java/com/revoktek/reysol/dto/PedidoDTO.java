@@ -28,6 +28,7 @@ public class PedidoDTO {
     private BigDecimal pendiente;
     private ClienteDTO cliente;
     private EstatusPedidoDTO estatusPedido;
+    private EstatusPagoDTO estatusPago;
     private MetodoPagoDTO metodoPago;
     private DomicilioDTO domicilio;
     private EmpleadoDTO empleadoEntrega;
