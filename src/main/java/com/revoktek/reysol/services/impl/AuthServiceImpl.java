@@ -98,11 +98,20 @@ public class AuthServiceImpl implements AuthService {
     public TokenDTO login(UsuarioDTO usuarioDTO) {
         try {
             log.info("login.usuarioDTO:{}", usuarioDTO);
-            Optional<Usuario> optional = usuarioRepository.findByUsuarioAndEstatus(usuarioDTO.getUsuario(), Boolean.TRUE);
+            Optional<Usuario> optional = usuarioRepository.findByUsuario(usuarioDTO.getUsuario());
             if (optional.isEmpty()) {
                 throw new ServiceLayerException(messageProvider.getMessageNotFound(usuarioDTO.getUsuario()));
             }
             Usuario usuario = optional.get();
+
+            if (usuario.getEstatus().equals(Boolean.FALSE)) {
+                throw new ServiceLayerException("Usuario inactivo");
+            }
+
+            if(!passwordEncoder.matches(usuarioDTO.getContrasena(), usuario.getContrasena())) {
+                throw new ServiceLayerException("Contraseña incorrecta");
+            }
+
             String token = jwtService.generateToken(usuario);
             String refresh = jwtService.refreshToken(usuario);
             Long expiration = jwtService.getExpiration();
@@ -120,7 +129,7 @@ public class AuthServiceImpl implements AuthService {
             TokenDTO tokenDTO = new TokenDTO(token, refresh, expiration, idEmpleado, roles);
             System.out.println(tokenDTO.toString());
             return tokenDTO;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             log.error(e.getMessage(), e);
             throw new ServiceLayerException(e);
         }

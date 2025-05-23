@@ -13,6 +13,7 @@ public class PedidoPath {
     public static final String SAVE_EMPLEADO_ENTREGA = "/saveEmpleadoEntrega";
     public static final String REMOVE_EMPLEADO_ENTREGA = "/removeEmpleadoEntrega";
     public static final String SAVE_DELIVERY = "/saveDelivery";
+    public static final String PEDIDO_PRODUCTO_CANCEL = "/pedidoProductoCancel";
 
     private PedidoPath() {
     }

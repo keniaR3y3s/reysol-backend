@@ -17,12 +17,12 @@ public class ExceptionController {
 
 
     @ExceptionHandler(value = {ServiceLayerException.class})
-    public ResponseEntity<Map<String, String>> runtimeException(RuntimeException ex) {
+    public ResponseEntity<Map<String, String>> runtimeException(ServiceLayerException ex) {
         return ResponseEntity.badRequest().body(getMessage(ex));
     }
 
     @ExceptionHandler(value = {NotFoundException.class})
-    public ResponseEntity<Map<String, String>> runtimeNotFoundException(RuntimeException ex) {
+    public ResponseEntity<Map<String, String>> runtimeNotFoundException(NotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(getMessage(ex));
     }
 

@@ -19,6 +19,8 @@ public interface PedidoProductoRepository extends JpaRepository<PedidoProducto, 
             INNER JOIN FETCH pedidoProducto.producto producto
             INNER JOIN FETCH producto.unidadMedida unidadMedida
             LEFT JOIN FETCH pedidoProducto.inventario inventario
+            LEFT JOIN FETCH pedidoProducto.productoCancelacion productoCancelacion
+            LEFT JOIN FETCH productoCancelacion.empleado empleado
             WHERE pedidoProducto.pedido.idPedido = :idPedido
             ORDER BY producto.nombre ASC
             """)
@@ -35,5 +37,17 @@ public interface PedidoProductoRepository extends JpaRepository<PedidoProducto, 
     BigDecimal sumCantidadsolicitadaByProductoAndEstatusPediddo(
             @Param("productoParam") Producto producto,
             @Param("idEstatusPedido") Integer idEstatusPedido
+    );
+
+    @Query("""
+            SELECT
+                SUM(pedidoProducto.subtotal)
+            FROM PedidoProducto pedidoProducto
+            INNER JOIN  pedidoProducto.pedido pedido
+            WHERE pedido.idPedido = :idPedido AND pedidoProducto.estatus  = :estatusProducto
+            """)
+    BigDecimal getTotalPedido(
+            @Param("idPedido") Long idPedido,
+            @Param("estatusProducto") boolean estatusProducto
     );
 }

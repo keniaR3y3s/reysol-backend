@@ -150,6 +150,9 @@ public class ClienteServiceImpl implements ClienteService {
     @Transactional
     public void save(ClienteDTO clienteDTO) throws ServiceLayerException {
         try {
+            if(applicationUtil.isEmpty(clienteDTO.getAlias())){
+                clienteDTO.setAlias(clienteDTO.getNombre() );
+            }
             Cliente cliente = clienteRepository.findByAlias(clienteDTO.getAlias());
             if (applicationUtil.nonNull(cliente)) {
                 throw new ServiceLayerException("Alias registrado previamente");
@@ -198,6 +201,9 @@ public class ClienteServiceImpl implements ClienteService {
     @Transactional
     public void update(ClienteDTO clienteDTO) throws ServiceLayerException {
         try {
+            if(applicationUtil.isEmpty(clienteDTO.getAlias())){
+                clienteDTO.setAlias(clienteDTO.getNombre() );
+            }
             Cliente cliente = clienteRepository.findByAliasAndIdClienteNot(clienteDTO.getAlias(), clienteDTO.getIdCliente());
             if (applicationUtil.nonNull(cliente)) {
                 throw new ServiceLayerException("Alias registrado previamente");

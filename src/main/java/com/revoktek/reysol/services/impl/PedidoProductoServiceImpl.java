@@ -6,11 +6,14 @@ import com.revoktek.reysol.core.enums.TipoMovimientoEnum;
 import com.revoktek.reysol.core.exceptions.ServiceLayerException;
 import com.revoktek.reysol.core.i18n.MessageProvider;
 import com.revoktek.reysol.core.utils.ApplicationUtil;
+import com.revoktek.reysol.dto.EmpleadoDTO;
+import com.revoktek.reysol.dto.ProductoCancelacionDTO;
 import com.revoktek.reysol.dto.InventarioDTO;
 import com.revoktek.reysol.dto.PedidoDTO;
 import com.revoktek.reysol.dto.PedidoProductoDTO;
 import com.revoktek.reysol.dto.ProductoDTO;
 import com.revoktek.reysol.dto.UnidadMedidaDTO;
+import com.revoktek.reysol.persistence.entities.ProductoCancelacion;
 import com.revoktek.reysol.persistence.entities.Cliente;
 import com.revoktek.reysol.persistence.entities.Corte;
 import com.revoktek.reysol.persistence.entities.CorteHistorial;
@@ -29,7 +32,7 @@ import com.revoktek.reysol.persistence.repositories.InventarioRepository;
 import com.revoktek.reysol.persistence.repositories.PedidoProductoRepository;
 import com.revoktek.reysol.persistence.repositories.PrecioClienteRepository;
 import com.revoktek.reysol.persistence.repositories.CorteHistorialRepository;
-import com.revoktek.reysol.persistence.repositories.ProductoRepository;
+import com.revoktek.reysol.persistence.repositories.ProductoCancelacionRepository;
 import com.revoktek.reysol.services.InventarioService;
 import com.revoktek.reysol.services.PedidoProductoService;
 import jakarta.transaction.Transactional;
@@ -51,16 +54,15 @@ import java.util.Optional;
 public class PedidoProductoServiceImpl implements PedidoProductoService {
 
     private final InventarioHistorialRepository inventarioHistorialRepository;
-    private final CorteHistorialRepository precioHistorialRepository;
+    private final ProductoCancelacionRepository productoCancelacionRepository;
     private final PedidoProductoRepository pedidoProductoRepository;
+    private final CorteHistorialRepository corteHistorialRepository;
     private final PrecioClienteRepository precioClienteRepository;
     private final InventarioRepository inventarioRepository;
-    private final ProductoRepository productoRepository;
     private final InventarioService inventarioService;
     private final MessageProvider messageProvider;
     private final ApplicationUtil applicationUtil;
     private final CorteRepository corteRepository;
-    private final CorteHistorialRepository corteHistorialRepository;
 
 
     @Override
@@ -99,17 +101,36 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
                             .unidadMedida(unidadMedidaDTO)
                             .build();
                 }
+                ProductoCancelacionDTO productoCancelacionDTO = null;
+                if (applicationUtil.nonNull(pedidoProducto.getProductoCancelacion())) {
+                    ProductoCancelacion pc = pedidoProducto.getProductoCancelacion();
+                    Empleado empleado = pc.getEmpleado();
+                    EmpleadoDTO empleadoDTO = EmpleadoDTO.builder().idEmpleado(empleado.getIdEmpleado())
+                            .nombre(empleado.getNombre())
+                            .primerApellido(empleado.getPrimerApellido())
+                            .segundoApellido(empleado.getSegundoApellido())
+                            .build();
+
+                    productoCancelacionDTO = ProductoCancelacionDTO.builder()
+                            .idProductoCancelacion(pc.getIdProductoCancelacion())
+                            .motivo(pc.getMotivo())
+                            .fechaRegistro(pc.getFechaRegistro())
+                            .empleado(empleadoDTO)
+                            .build();
+                }
 
 
                 return PedidoProductoDTO.builder()
                         .idPedidoProducto(pedidoProducto.getIdPedidoProducto())
                         .precio(pedidoProducto.getPrecio())
+                        .estatus(pedidoProducto.getEstatus())
+                        .productoCancelacion(productoCancelacionDTO)
                         .cantidadSolicitada(pedidoProducto.getCantidadSolicitada())
-                        .pesoSolicitado(pedidoProducto.getPesoSolicitado())
                         .cantidadDespachada(pedidoProducto.getCantidadDespachada())
+                        .cantidadEntregada(pedidoProducto.getCantidadEntregada())
+                        .pesoSolicitado(pedidoProducto.getPesoSolicitado())
                         .pesoDespachado(pedidoProducto.getPesoDespachado())
                         .pesoEntregado(pedidoProducto.getPesoEntregado())
-                        .cantidadEntregada(pedidoProducto.getCantidadEntregada())
                         .cantidadFrias(pedidoProducto.getCantidadFrias())
                         .subtotal(pedidoProducto.getSubtotal())
                         .diferencia(pedidoProducto.getDiferencia())
@@ -216,6 +237,7 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
                 Optional<CorteHistorial> corteHistorial = corteHistorialRepository.findAllByCorteOrderByFechaRegistroDesc(corte).stream().findFirst();
 
                 PedidoProducto pedidoProducto = new PedidoProducto();
+                pedidoProducto.setEstatus(Boolean.TRUE);
                 pedidoProducto.setPrecio(corte.getPrecio());
                 pedidoProducto.setCantidadSolicitada(productoDTO.getCantidadDespachada());
                 pedidoProducto.setCantidadDespachada(productoDTO.getCantidadDespachada());
@@ -333,6 +355,7 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
 
 
                 PedidoProducto pedidoProducto = new PedidoProducto();
+                pedidoProducto.setEstatus(Boolean.TRUE);
                 pedidoProducto.setPrecio(corte.getPrecio());
                 pedidoProducto.setSubtotal(BigDecimal.ZERO);
                 pedidoProducto.setCantidadFrias(productoDTO.getCantidadFrias());
@@ -345,6 +368,7 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
                 pedidoProducto.setPedido(pedido);
                 pedidoProducto.setProducto(producto);
                 pedidoProducto.setCorteHistorial(corteHistorial.orElse(null));
+                pedidoProducto.setEstatus(Boolean.TRUE);
 
                 if (applicationUtil.nonNull(precioCliente)) {
                     pedidoProducto.setPrecioCliente(precioCliente);
@@ -363,6 +387,73 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
 
 
             return total;
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new ServiceLayerException(e);
+        }
+    }
+
+    @Override
+    public void cancelPedidoProducto(ProductoCancelacionDTO productoCancelacionDTO) throws ServiceLayerException {
+        try {
+
+            PedidoProductoDTO pedidoProductoDTO = productoCancelacionDTO.getPedidoProducto();
+
+            Optional<PedidoProducto> optional = pedidoProductoRepository.findById(pedidoProductoDTO.getIdPedidoProducto());
+            if (optional.isEmpty()) {
+                throw new ServiceLayerException(messageProvider.getMessageNotFound(pedidoProductoDTO.getIdPedidoProducto()));
+            }
+            Empleado empleado = new Empleado(productoCancelacionDTO.getEmpleado().getIdEmpleado());
+
+            PedidoProducto pedidoProducto = optional.get();
+            pedidoProducto.setEstatus(Boolean.FALSE);
+            pedidoProductoRepository.save(pedidoProducto);
+
+            ProductoCancelacion productoCancelacion = productoCancelacionRepository.findByPedidoProducto(optional.get());
+            if (applicationUtil.isNull(productoCancelacion)) {
+                productoCancelacion = new ProductoCancelacion();
+            }
+            productoCancelacion.setMotivo(productoCancelacionDTO.getMotivo());
+            productoCancelacion.setFechaRegistro(new Date());
+            productoCancelacion.setPedidoProducto(pedidoProducto);
+            productoCancelacion.setEmpleado(empleado);
+            productoCancelacionRepository.save(productoCancelacion);
+
+
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new ServiceLayerException(e);
+        }
+    }
+
+    @Override
+    public PedidoDTO findPedidoByPedidoProducto(Long idPedidoProducto) throws ServiceLayerException {
+        try {
+
+            Optional<PedidoProducto> optional = pedidoProductoRepository.findById(idPedidoProducto);
+            if (optional.isEmpty()) {
+                throw new ServiceLayerException(messageProvider.getMessageNotFound(idPedidoProducto));
+            }
+            Pedido pedido = optional.get().getPedido();
+            PedidoDTO pedidoDTO = new PedidoDTO();
+            pedidoDTO.setIdPedido(pedido.getIdPedido());
+            pedidoDTO.setTotal(pedido.getTotal());
+            pedidoDTO.setFechaRegistro(pedido.getFechaRegistro());
+
+            return pedidoDTO;
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new ServiceLayerException(e);
+        }
+    }
+
+    @Override
+    public BigDecimal getTotalPedido(Long idPedido) throws ServiceLayerException {
+        try {
+
+            BigDecimal total = pedidoProductoRepository.getTotalPedido(idPedido, Boolean.TRUE);
+            return applicationUtil.nonNull(total) ? total : BigDecimal.ZERO;
+
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new ServiceLayerException(e);

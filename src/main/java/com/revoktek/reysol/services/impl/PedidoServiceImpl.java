@@ -7,6 +7,7 @@ import com.revoktek.reysol.core.exceptions.ServiceLayerException;
 import com.revoktek.reysol.core.i18n.MessageProvider;
 import com.revoktek.reysol.core.utils.ApplicationUtil;
 import com.revoktek.reysol.core.utils.MapperUtil;
+import com.revoktek.reysol.dto.ProductoCancelacionDTO;
 import com.revoktek.reysol.dto.ClienteDTO;
 import com.revoktek.reysol.dto.DomicilioDTO;
 import com.revoktek.reysol.dto.EmpleadoDTO;
@@ -427,7 +428,7 @@ public class PedidoServiceImpl implements PedidoService {
             pedido.setEmpleadoEntrega(empleadoEntrega);
             pedido.setEstatusPago(estatusPago);
 
-            if(applicationUtil.isNull(pedido.getEmpleadoDespacha())){
+            if (applicationUtil.isNull(pedido.getEmpleadoDespacha())) {
                 pedido.setEmpleadoDespacha(empleadoEntrega);
             }
 
@@ -549,6 +550,30 @@ public class PedidoServiceImpl implements PedidoService {
 
             }
             return pedidoDTOS;
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new ServiceLayerException(e);
+        }
+    }
+
+    @Override
+    public void cancelPedidoProducto(ProductoCancelacionDTO productoCancelacionDTO, String token) throws ServiceLayerException {
+        try {
+
+            Empleado empleado = jwtService.getEmpleado(token);
+            productoCancelacionDTO.setEmpleado(new EmpleadoDTO(empleado.getIdEmpleado()));
+
+            pedidoProductoService.cancelPedidoProducto(productoCancelacionDTO);
+
+            PedidoDTO pedidoDTO = pedidoProductoService.findPedidoByPedidoProducto(productoCancelacionDTO.getPedidoProducto().getIdPedidoProducto());
+
+            BigDecimal total = pedidoProductoService.getTotalPedido(pedidoDTO.getIdPedido());
+
+            Pedido pedido = pedidoRepository.findByIdPedido(pedidoDTO.getIdPedido());
+            pedido.setTotal(total);
+            pedidoRepository.save(pedido);
+
+
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new ServiceLayerException(e);

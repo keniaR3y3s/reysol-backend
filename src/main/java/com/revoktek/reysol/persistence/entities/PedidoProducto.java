@@ -8,6 +8,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -58,6 +59,8 @@ public class PedidoProducto {
     @Column(name = "peso_entregado")
     private BigDecimal pesoEntregado;
 
+    @Column(name = "estatus")
+    private Boolean estatus = Boolean.TRUE;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pedido_id")
@@ -86,5 +89,10 @@ public class PedidoProducto {
     @JoinColumn(name = "corte_id")
     private Corte corte;
 
+    @OneToOne(mappedBy = "pedidoProducto", fetch = FetchType.LAZY)
+    private ProductoCancelacion productoCancelacion;
 
+    public PedidoProducto(Long idPedidoProducto) {
+        this.idPedidoProducto = idPedidoProducto;
+    }
 }

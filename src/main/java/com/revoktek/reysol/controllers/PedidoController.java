@@ -2,6 +2,7 @@ package com.revoktek.reysol.controllers;
 
 import com.revoktek.reysol.core.constants.request.PedidoPath;
 import com.revoktek.reysol.core.exceptions.ServiceLayerException;
+import com.revoktek.reysol.dto.ProductoCancelacionDTO;
 import com.revoktek.reysol.dto.PedidoDTO;
 import com.revoktek.reysol.dto.filter.FilterPedidoDTO;
 import com.revoktek.reysol.services.PedidoService;
@@ -82,6 +83,12 @@ public class PedidoController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void saveDelivery(@RequestHeader(HttpHeaders.AUTHORIZATION) String token, @RequestBody PedidoDTO pedidoDTO) throws ServiceLayerException {
         pedidoService.saveDelivery(pedidoDTO, token);
+    }
+
+    @PostMapping(PedidoPath.PEDIDO_PRODUCTO_CANCEL)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void cancelPedidoProducto(@RequestHeader(HttpHeaders.AUTHORIZATION) String token, @RequestBody ProductoCancelacionDTO productoCancelacionDTO) throws ServiceLayerException {
+        pedidoService.cancelPedidoProducto(productoCancelacionDTO, token);
     }
 
 }

@@ -225,6 +225,7 @@ public class EmpleadoServiceImpl implements EmpleadoService {
 
             UsuarioDTO usuarioDTO = empleadoDTO.getUsuario();
 
+            /*
             Optional<Usuario> optionalUsuario = usuarioRepository.findByUsuarioAndIdUsuarioNot(usuarioDTO.getUsuario(), usuario.getIdUsuario());
             if (optionalUsuario.isPresent()) {
                 throw new ServiceLayerException("Usuario previamente registrado");
@@ -240,12 +241,14 @@ public class EmpleadoServiceImpl implements EmpleadoService {
             empleadoRepository.save(empleado);
 
             usuario.setUsuario(usuarioDTO.getUsuario());
+            */
             if (applicationUtil.nonEmpty(usuarioDTO.getContrasena())) {
                 usuario.setContrasena(passwordEncoder.encode(usuarioDTO.getContrasena()));
             }
             usuario.setEstatus(usuarioDTO.getEstatus());
             usuarioRepository.save(usuario);
 
+            /*
             List<UsuarioRol> usuarioRoles = usuarioRolRepository.findAllByUsuario(usuario);
             if (applicationUtil.nonEmptyList(usuarioRoles)) {
                 usuarioRolRepository.deleteAll(usuarioRoles);
@@ -267,7 +270,7 @@ public class EmpleadoServiceImpl implements EmpleadoService {
             contacto.setEmpleado(empleado);
             contacto.setTelefono(empleadoDTO.getContacto().getTelefono());
             contactoRepository.save(contacto);
-
+            */
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new ServiceLayerException(e);

@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 public class PedidoProductoDTO {
 
     private Long idPedidoProducto;
+    private Boolean estatus;
     private BigDecimal precio;
     private BigDecimal subtotal;
     private BigDecimal cantidadFrias;
@@ -35,5 +36,6 @@ public class PedidoProductoDTO {
     private CorteHistorialDTO corteHistorial;
     private CorteDTO corte;
     private PrecioClienteDTO precioCliente;
+    private ProductoCancelacionDTO productoCancelacion;
 
 }

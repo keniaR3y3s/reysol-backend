@@ -1,6 +1,5 @@
 package com.revoktek.reysol.config;
 
-import com.revoktek.reysol.core.constants.request.AuthPath;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

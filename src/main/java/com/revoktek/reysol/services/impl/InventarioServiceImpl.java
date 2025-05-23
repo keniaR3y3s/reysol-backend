@@ -104,6 +104,7 @@ public class InventarioServiceImpl implements InventarioService {
                 InventarioDTO inventarioDTO = InventarioDTO.builder()
                         .idInventario(inventario.getIdInventario())
                         .cantidad(inventario.getCantidad())
+                        .peso(inventario.getPeso())
                         .fechaRegistro(inventario.getFechaRegistro())
                         .fechaModificacion(inventario.getFechaModificacion())
                         .build();
@@ -128,6 +129,14 @@ public class InventarioServiceImpl implements InventarioService {
                     productoDTO.setUnidadMedida(unidadMedidaDTO);
                 }
 
+                if (applicationUtil.nonNull(inventario.getTipoInventario())) {
+                    TipoInventarioDTO tipoInventarioDTO = TipoInventarioDTO.builder()
+                            .idTipoInventario(inventario.getTipoInventario().getIdTipoInventario())
+                            .nombre(inventario.getTipoInventario().getNombre())
+                            .descripcion(inventario.getTipoInventario().getDescripcion())
+                            .build();
+                    inventarioDTO.setTipoInventario(tipoInventarioDTO);
+                }
                 if (applicationUtil.nonNull(inventario.getTipoInventario())) {
                     TipoInventarioDTO tipoInventarioDTO = TipoInventarioDTO.builder()
                             .idTipoInventario(inventario.getTipoInventario().getIdTipoInventario())
