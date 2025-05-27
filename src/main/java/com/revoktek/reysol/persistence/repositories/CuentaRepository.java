@@ -40,9 +40,9 @@ public interface CuentaRepository extends JpaRepository<Cuenta, Long> {
                 SELECT COALESCE(SUM(COALESCE(pedido.pendiente, 0)), 0)
                 FROM Pedido pedido
                 INNER JOIN pedido.cliente cliente
-                INNER JOIN pedido.estatusPedido estatusPedido
+                INNER JOIN pedido.estatusPago estatusPago
                 WHERE cliente.idCliente = :idCliente
-                AND estatusPedido.idEstatusPedido NOT IN (:estatusList)
+                AND estatusPago.idEstatusPago NOT IN (:estatusList)
             """)
     BigDecimal sumPending(@Param("idCliente") Long idCliente, @Param("estatusList") List<Integer> estatusList);
 }

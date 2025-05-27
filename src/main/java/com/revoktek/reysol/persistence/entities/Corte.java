@@ -32,8 +32,11 @@ public class Corte {
     @Column(name = "cantidad")
     private BigDecimal cantidad;
 
-    @Column(name = "precio")
-    private BigDecimal precio;
+    @Column(name = "precio_pieza")
+    private BigDecimal precioPieza;
+
+    @Column(name = "precio_kilo")
+    private BigDecimal precioKilo;
 
     @Column(name = "estatus")
     private Boolean estatus;

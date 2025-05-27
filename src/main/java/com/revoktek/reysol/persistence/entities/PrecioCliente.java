@@ -32,8 +32,11 @@ public class PrecioCliente {
     @Column(name = "id_precio_cliente")
     private Long idPrecioCliente;
 
-    @Column(name = "precio")
-    private BigDecimal precio;
+    @Column(name = "precio_pieza")
+    private BigDecimal precioPieza;
+
+    @Column(name = "precio_kilo")
+    private BigDecimal precioKilo;
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "fecha_registro")

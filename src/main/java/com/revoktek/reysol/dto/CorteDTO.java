@@ -17,9 +17,11 @@ import java.math.BigDecimal;
 @ToString
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CorteDTO implements Serializable {
+
     private Long idCorte;
     private BigDecimal cantidad;
-    private BigDecimal precio;
+    private BigDecimal precioPieza;
+    private BigDecimal precioKilo;
     private TipoCorteDTO tipoCorte;
     private ProductoDTO producto;
 

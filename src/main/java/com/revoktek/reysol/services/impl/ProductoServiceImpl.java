@@ -99,7 +99,8 @@ public class ProductoServiceImpl implements ProductoService {
                 PrecioClienteDTO precioClienteDTO = new PrecioClienteDTO();
                 precioClienteDTO.setIdPrecioCliente(precioCliente.getIdPrecioCliente());
                 precioClienteDTO.setProducto(productoDTO);
-                precioClienteDTO.setPrecio(precioCliente.getPrecio());
+                precioClienteDTO.setPrecioPieza(precioCliente.getPrecioPieza());
+                precioClienteDTO.setPrecioKilo(precioCliente.getPrecioKilo());
                 precioClienteDTO.setEstatus(precioCliente.getEstatus());
                 precioClienteDTO.setFechaRegistro(precioCliente.getFechaRegistro());
 
@@ -128,19 +129,22 @@ public class ProductoServiceImpl implements ProductoService {
             if (applicationUtil.isNull(precioCliente)) {
 
                 precioCliente = new PrecioCliente();
-                precioCliente.setPrecio(precioClienteDTO.getPrecio());
+                precioCliente.setPrecioPieza(precioClienteDTO.getPrecioPieza());
+                precioCliente.setPrecioKilo(precioClienteDTO.getPrecioKilo());
                 precioCliente.setFechaRegistro(new Date());
                 precioCliente.setEstatus(Boolean.TRUE);
                 precioCliente.setProducto(producto);
                 precioCliente.setCliente(cliente);
                 precioClienteRepository.save(precioCliente);
 
-            } else if (precioCliente.getPrecio().compareTo(precioClienteDTO.getPrecio()) != 0) {
+            } else if ((precioCliente.getPrecioPieza().compareTo(precioClienteDTO.getPrecioPieza()) != 0) ||
+                    (precioCliente.getPrecioKilo().compareTo(precioClienteDTO.getPrecioKilo()) != 0)) {
                 precioCliente.setEstatus(Boolean.FALSE);
                 precioClienteRepository.save(precioCliente);
 
                 precioCliente = new PrecioCliente();
-                precioCliente.setPrecio(precioClienteDTO.getPrecio());
+                precioCliente.setPrecioPieza(precioClienteDTO.getPrecioPieza());
+                precioCliente.setPrecioKilo(precioClienteDTO.getPrecioKilo());
                 precioCliente.setFechaRegistro(new Date());
                 precioCliente.setEstatus(Boolean.TRUE);
                 precioCliente.setProducto(producto);

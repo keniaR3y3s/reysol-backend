@@ -12,7 +12,7 @@ public interface PedidoProductoService {
 
     List<PedidoProductoDTO> findAllByProducto(Long id) throws ServiceLayerException;
 
-    void saveAllDispatch(List<PedidoProductoDTO> productoDTOS, Long idEmpleado) throws ServiceLayerException;
+    BigDecimal saveAllDispatch(List<PedidoProductoDTO> productoDTOS, Long idEmpleado) throws ServiceLayerException;
 
     BigDecimal saveProductosExtemporaneos(List<PedidoProductoDTO> productos, Long idPedido, Long idEmpleado) throws ServiceLayerException;
 

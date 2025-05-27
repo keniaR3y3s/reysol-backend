@@ -8,7 +8,6 @@ import com.revoktek.reysol.dto.CorteDTO;
 import com.revoktek.reysol.dto.ProductoDTO;
 import com.revoktek.reysol.dto.TipoCorteDTO;
 import com.revoktek.reysol.dto.UnidadMedidaDTO;
-import com.revoktek.reysol.persistence.entities.CalculoSacrificio;
 import com.revoktek.reysol.persistence.entities.Corte;
 import com.revoktek.reysol.persistence.entities.CorteHistorial;
 import com.revoktek.reysol.persistence.entities.Empleado;
@@ -16,7 +15,6 @@ import com.revoktek.reysol.persistence.entities.Producto;
 import com.revoktek.reysol.persistence.entities.Sacrificio;
 import com.revoktek.reysol.persistence.entities.TipoCorte;
 import com.revoktek.reysol.persistence.entities.UnidadMedida;
-import com.revoktek.reysol.persistence.repositories.CalculoSacrificioRepository;
 import com.revoktek.reysol.persistence.repositories.CorteHistorialRepository;
 import com.revoktek.reysol.persistence.repositories.CorteRepository;
 import com.revoktek.reysol.persistence.repositories.InventarioRepository;
@@ -32,6 +30,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 
@@ -50,7 +49,6 @@ public class CorteServiceImpl implements CorteService {
     private final MapperUtil mapperUtil;
     private final JwtServiceImpl jwtServiceImpl;
     private final SacrificioRepository sacrificioRepository;
-    private final CalculoSacrificioRepository calculoSacrificioRepository;
     private final CorteHistorialRepository corteHistorialRepository;
 
     @Override
@@ -85,13 +83,15 @@ public class CorteServiceImpl implements CorteService {
             }
             corte.setEstatus(Boolean.TRUE);
             corte.setCantidad(corteDTO.getCantidad());
-            corte.setPrecio(corteDTO.getPrecio());
+            corte.setPrecioKilo(Objects.requireNonNullElse(corteDTO.getPrecioKilo(), BigDecimal.ZERO));
+            corte.setPrecioPieza(Objects.requireNonNullElse(corteDTO.getPrecioPieza(), BigDecimal.ZERO));
             corteRepository.save(corte);
 
             Empleado empleado = jwtServiceImpl.getEmpleado(token);
 
             CorteHistorial corteHistorial = new CorteHistorial();
-            corteHistorial.setPrecio(corteDTO.getPrecio());
+            corteHistorial.setPrecioKilo(Objects.requireNonNullElse(corteDTO.getPrecioKilo(), BigDecimal.ZERO));
+            corteHistorial.setPrecioPieza(Objects.requireNonNullElse(corteDTO.getPrecioPieza(), BigDecimal.ZERO));
             corteHistorial.setCantidad(corteDTO.getCantidad());
             corteHistorial.setFechaRegistro(new Date());
             corteHistorial.setCorte(corte);
@@ -239,7 +239,8 @@ public class CorteServiceImpl implements CorteService {
                     CorteDTO corteDTO = new CorteDTO();
                     corteDTO.setIdCorte(corte.getIdCorte());
                     corteDTO.setCantidad(corte.getCantidad());
-                    corteDTO.setPrecio(corte.getPrecio());
+                    corteDTO.setPrecioPieza(corte.getPrecioPieza());
+                    corteDTO.setPrecioKilo(corte.getPrecioKilo());
                     corteDTO.setProducto(productoDTO);
                     return corteDTO;
 

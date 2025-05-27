@@ -62,6 +62,9 @@ public class PedidoProducto {
     @Column(name = "estatus")
     private Boolean estatus = Boolean.TRUE;
 
+    @Column(name = "tipo_precio")
+    private Integer tipoPrecio;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pedido_id")
     private Pedido pedido;

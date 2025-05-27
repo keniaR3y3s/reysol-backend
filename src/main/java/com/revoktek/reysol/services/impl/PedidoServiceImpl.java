@@ -292,9 +292,12 @@ public class PedidoServiceImpl implements PedidoService {
                 pedido.setEstatusPedido(estatusDespachado);
             }
 
+            BigDecimal total = pedidoProductoService.saveAllDispatch(pedidoDTO.getProductos(), empleadoDespacha.getIdEmpleado());
+            pedido.setTotal(total);
             pedidoRepository.save(pedido);
 
-            pedidoProductoService.saveAllDispatch(pedidoDTO.getProductos(), empleadoDespacha.getIdEmpleado());
+            Cliente cliente = pedido.getCliente();
+            cuentaService.updateSaldo(cliente.getIdCliente());
 
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -571,8 +574,12 @@ public class PedidoServiceImpl implements PedidoService {
 
             Pedido pedido = pedidoRepository.findByIdPedido(pedidoDTO.getIdPedido());
             pedido.setTotal(total);
+            BigDecimal pendiente = pedido.getTotal().subtract(pedido.getAbonado());
+            pedido.setPendiente(pendiente);
             pedidoRepository.save(pedido);
 
+            Cliente cliente = pedido.getCliente();
+            cuentaService.updateSaldo(cliente.getIdCliente());
 
         } catch (Exception e) {
             log.error(e.getMessage(), e);

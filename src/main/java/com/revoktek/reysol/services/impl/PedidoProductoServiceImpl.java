@@ -3,6 +3,7 @@ package com.revoktek.reysol.services.impl;
 import com.revoktek.reysol.core.enums.EstatusPedidoEnum;
 import com.revoktek.reysol.core.enums.TipoInventarioEnum;
 import com.revoktek.reysol.core.enums.TipoMovimientoEnum;
+import com.revoktek.reysol.core.enums.TipoPrecioEnum;
 import com.revoktek.reysol.core.exceptions.ServiceLayerException;
 import com.revoktek.reysol.core.i18n.MessageProvider;
 import com.revoktek.reysol.core.utils.ApplicationUtil;
@@ -45,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 
@@ -134,6 +136,7 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
                         .cantidadFrias(pedidoProducto.getCantidadFrias())
                         .subtotal(pedidoProducto.getSubtotal())
                         .diferencia(pedidoProducto.getDiferencia())
+                        .tipoPrecio(pedidoProducto.getTipoPrecio())
                         .producto(productoDTO)
                         .build();
 
@@ -148,12 +151,14 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
 
     @Override
     @Transactional
-    public void saveAllDispatch(List<PedidoProductoDTO> productos, Long idEmpleado) throws ServiceLayerException {
+    public BigDecimal saveAllDispatch(List<PedidoProductoDTO> productos, Long idEmpleado) throws ServiceLayerException {
         try {
 
             if (applicationUtil.isEmptyList(productos)) {
                 throw new ServiceLayerException("Los productos son requeridos");
             }
+
+            BigDecimal total = BigDecimal.ZERO;
 
             for (PedidoProductoDTO productoDTO : productos) {
 
@@ -169,12 +174,10 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
 
 
                 InventarioDTO inventarioDTO = inventarioService.findOrSaveByProductoAndTipoInventario(idProducto, idTipoInventario, idEmpleado);
+                Inventario inventario = inventarioRepository.findByIdInventario(inventarioDTO.getIdInventario());
                 /*if (inventarioDTO.getCantidad().compareTo(productoDTO.getCantidadDespachada()) < 0) {
                     throw new ServiceLayerException("Solo " + inventarioDTO.getCantidad().toPlainString() + " disponible de " + pedidoProducto.getProducto().getNombre());
                 }*/
-
-
-                Inventario inventario = inventarioRepository.findByIdInventario(inventarioDTO.getIdInventario());
 
                 pedidoProducto.setCantidadDespachada(productoDTO.getCantidadDespachada());
                 pedidoProducto.setPesoDespachado(productoDTO.getPesoDespachado());
@@ -192,13 +195,28 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
                 InventarioHistorial inventarioHistorial = new InventarioHistorial();
                 inventarioHistorial.setInventario(inventario);
                 inventarioHistorial.setCantidad(pedidoProducto.getCantidadDespachada());
+                inventarioHistorial.setPeso(pedidoProducto.getPesoDespachado());
                 inventarioHistorial.setFechaRegistro(new Date());
                 inventarioHistorial.setEmpleado(new Empleado(idEmpleado));
                 inventarioHistorial.setTipoMovimiento(new TipoMovimiento(TipoMovimientoEnum.SALIDA.getValue()));
                 inventarioHistorialRepository.save(inventarioHistorial);
 
+                BigDecimal subtotal = BigDecimal.ZERO;
+
+                if(pedidoProducto.getTipoPrecio().equals(TipoPrecioEnum.PIEZA.getValue())){
+                    subtotal =  pedidoProducto.getPrecio().multiply(pedidoProducto.getCantidadDespachada());
+                }else if(pedidoProducto.getTipoPrecio().equals(TipoPrecioEnum.KILO.getValue())){
+                    subtotal = pedidoProducto.getPrecio().multiply(pedidoProducto.getPesoDespachado());
+                }
+                pedidoProducto.setSubtotal(subtotal);
+
+                pedidoProductoRepository.save(pedidoProducto);
+
+                total = total.add(subtotal);
+
             }
 
+            return total;
 
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -238,7 +256,6 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
 
                 PedidoProducto pedidoProducto = new PedidoProducto();
                 pedidoProducto.setEstatus(Boolean.TRUE);
-                pedidoProducto.setPrecio(corte.getPrecio());
                 pedidoProducto.setCantidadSolicitada(productoDTO.getCantidadDespachada());
                 pedidoProducto.setCantidadDespachada(productoDTO.getCantidadDespachada());
                 pedidoProducto.setDiferencia(BigDecimal.ZERO);
@@ -249,9 +266,24 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
                 pedidoProducto.setInventario(inventario);
                 pedidoProducto.setCorte(corte);
                 pedidoProducto.setCorteHistorial(corteHistorial.orElse(null));
+                pedidoProducto.setTipoPrecio(productoDTO.getTipoPrecio());
+
+                BigDecimal subtotal = BigDecimal.ZERO;
+                BigDecimal precio = BigDecimal.ZERO;
+
+                if(pedidoProducto.getTipoPrecio().equals(TipoPrecioEnum.PIEZA.getValue())){
+                    precio = corte.getPrecioPieza();
+                    subtotal = precio.multiply(pedidoProducto.getCantidadDespachada());
+                }else if(pedidoProducto.getTipoPrecio().equals(TipoPrecioEnum.KILO.getValue())){
+                    precio = corte.getPrecioKilo();
+                    subtotal = precio.multiply(pedidoProducto.getPesoDespachado());
+                }
+
+                pedidoProducto.setPrecio(precio);
+                pedidoProducto.setSubtotal(subtotal);
+
                 pedidoProductoRepository.save(pedidoProducto);
 
-                BigDecimal subtotal = pedidoProducto.getPrecio().multiply(pedidoProducto.getCantidadDespachada());
                 total = total.add(subtotal);
 
 
@@ -264,6 +296,7 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
                 InventarioHistorial inventarioHistorial = new InventarioHistorial();
                 inventarioHistorial.setInventario(inventario);
                 inventarioHistorial.setCantidad(pedidoProducto.getCantidadDespachada());
+                inventarioHistorial.setPeso(pedidoProducto.getPesoDespachado());
                 inventarioHistorial.setFechaRegistro(new Date());
                 inventarioHistorial.setEmpleado(new Empleado(idEmpleado));
                 inventarioHistorial.setTipoMovimiento(new TipoMovimiento(TipoMovimientoEnum.SALIDA.getValue()));
@@ -318,7 +351,6 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
     public BigDecimal getCantidadSolicitadaByProducto(Long idProducto) throws ServiceLayerException {
         try {
 
-            log.info("getCantidadSolicitadaByProducto.idProducto : {}", idProducto);
             Integer statusPedido = EstatusPedidoEnum.PENDIENTE.getValue();
             BigDecimal solicitado = pedidoProductoRepository.sumCantidadsolicitadaByProductoAndEstatusPediddo(new Producto(idProducto), statusPedido);
             return applicationUtil.nonNull(solicitado) ? solicitado : BigDecimal.ZERO;
@@ -342,7 +374,6 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
             Pedido pedido = new Pedido(pedidoDTO.getIdPedido());
             Cliente cliente = new Cliente(idCliente);
             BigDecimal total = BigDecimal.ZERO;
-            Date fechaRegistro = new Date();
 
             for (PedidoProductoDTO productoDTO : productos) {
                 Long idCorte = productoDTO.getCorte().getIdCorte();
@@ -356,7 +387,6 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
 
                 PedidoProducto pedidoProducto = new PedidoProducto();
                 pedidoProducto.setEstatus(Boolean.TRUE);
-                pedidoProducto.setPrecio(corte.getPrecio());
                 pedidoProducto.setSubtotal(BigDecimal.ZERO);
                 pedidoProducto.setCantidadFrias(productoDTO.getCantidadFrias());
                 pedidoProducto.setCantidadSolicitada(productoDTO.getCantidadSolicitada());
@@ -368,20 +398,38 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
                 pedidoProducto.setPedido(pedido);
                 pedidoProducto.setProducto(producto);
                 pedidoProducto.setCorteHistorial(corteHistorial.orElse(null));
+                pedidoProducto.setCorte(corte);
                 pedidoProducto.setEstatus(Boolean.TRUE);
+
+                pedidoProducto.setTipoPrecio(productoDTO.getTipoPrecio());
+                BigDecimal subtotal = BigDecimal.ZERO;
+                BigDecimal precio = BigDecimal.ZERO;
 
                 if (applicationUtil.nonNull(precioCliente)) {
                     pedidoProducto.setPrecioCliente(precioCliente);
-                    pedidoProducto.setPrecio(precioCliente.getPrecio());
+                    if(pedidoProducto.getTipoPrecio().equals(TipoPrecioEnum.PIEZA.getValue())){
+                        precio = precioCliente.getPrecioPieza();
+                        subtotal = precio.multiply(pedidoProducto.getCantidadSolicitada());
+                    }else if(pedidoProducto.getTipoPrecio().equals(TipoPrecioEnum.KILO.getValue())){
+                        precio = precioCliente.getPrecioKilo();
+                        subtotal = precio.multiply(pedidoProducto.getPesoSolicitado());
+                    }
+                }else{
+                    if(pedidoProducto.getTipoPrecio().equals(TipoPrecioEnum.PIEZA.getValue())){
+                        precio = corte.getPrecioPieza();
+                        subtotal = precio.multiply(pedidoProducto.getCantidadSolicitada());
+                    }else if(pedidoProducto.getTipoPrecio().equals(TipoPrecioEnum.KILO.getValue())){
+                        precio = corte.getPrecioKilo();
+                        subtotal = precio.multiply(pedidoProducto.getPesoSolicitado());
+                    }
                 }
-
-
-                pedidoProducto.setSubtotal(pedidoProducto.getPrecio().multiply(pedidoProducto.getPesoSolicitado()));
+                pedidoProducto.setPrecio(precio);
+                pedidoProducto.setSubtotal(subtotal);
 
                 pedidoProductoRepository.save(pedidoProducto);
 
+                total = total.add(subtotal);
 
-                total = total.add(pedidoProducto.getSubtotal());
 
             }
 

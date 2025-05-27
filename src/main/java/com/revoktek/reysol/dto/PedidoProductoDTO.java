@@ -17,6 +17,7 @@ public class PedidoProductoDTO {
 
     private Long idPedidoProducto;
     private Boolean estatus;
+    private Integer tipoPrecio;
     private BigDecimal precio;
     private BigDecimal subtotal;
     private BigDecimal cantidadFrias;

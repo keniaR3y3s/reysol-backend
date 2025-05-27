@@ -12,7 +12,8 @@ import java.util.Date;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PrecioClienteDTO {
     private Long idPrecioCliente;
-    private BigDecimal precio;
+    private BigDecimal precioPieza;
+    private BigDecimal precioKilo;
     private Date fechaRegistro;
     private Boolean estatus;
     private ProductoDTO producto;

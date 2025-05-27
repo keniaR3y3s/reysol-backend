@@ -31,8 +31,11 @@ public class CorteHistorial {
     @Column(name = "id_corte_historial")
     private Long idCorteHistorial;
 
-    @Column(name = "precio")
-    private BigDecimal precio;
+    @Column(name = "precio_pieza")
+    private BigDecimal precioPieza;
+
+    @Column(name = "precio_kilo")
+    private BigDecimal precioKilo;
 
     @Column(name = "cantidad")
     private BigDecimal cantidad;

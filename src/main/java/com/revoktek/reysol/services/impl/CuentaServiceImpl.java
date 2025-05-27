@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import com.revoktek.reysol.core.enums.EstatusPagoEnum;
 import com.revoktek.reysol.core.enums.EstatusPedidoEnum;
 import com.revoktek.reysol.dto.CancelacionPagoDTO;
 import com.revoktek.reysol.dto.EmpleadoDTO;
@@ -232,8 +233,8 @@ public class CuentaServiceImpl implements CuentaService {
         }
 
         List<Integer> estatusList = Arrays.asList(
-                EstatusPedidoEnum.ENTREGADO.getValue(),
-                EstatusPedidoEnum.CANCELADO.getValue()
+                EstatusPagoEnum.PAGO_COMPLETO.getValue(),
+                EstatusPagoEnum.PAGO_CANCELADO.getValue()
         );
 
         BigDecimal pending = cuentaRepository.sumPending(idCliente, estatusList);

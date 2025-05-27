@@ -5,6 +5,9 @@ spring:
     resources:
       add-mappings: false
   datasource:
+#    url: jdbc:mysql://localhost:3306/reysol_dev?useSSL=false
+#    username: root
+#    password: root
     url: jdbc:mysql://localhost:3306/reysol_prod?useSSL=false
     username: mediuser
     password: Medi2022
