@@ -31,9 +31,9 @@ import java.util.Optional;
 @AllArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-    private final RolRepository rolRepository;
+    private RolRepository rolRepository;
     private UsuarioRolRepository usuarioRolRepository;
-    private final ApplicationUtil applicationUtil;
+    private ApplicationUtil applicationUtil;
     private UsuarioRepository usuarioRepository;
     private MessageProvider messageProvider;
     private PasswordEncoder passwordEncoder;
@@ -44,7 +44,7 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public TokenDTO saveUser(UsuarioDTO usuarioDTO) throws ServiceLayerException {
         try {
-            log.info("saverUser.usuarioDTO:{}", usuarioDTO);
+            log.info("Datos front saveUser.usuarioDTO : {}", applicationUtil.toJson(usuarioDTO));
 
             Optional<Usuario> optional = usuarioRepository.findByUsuario(usuarioDTO.getUsuario());
             if (optional.isPresent()) {
@@ -97,7 +97,8 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public TokenDTO login(UsuarioDTO usuarioDTO) {
         try {
-            log.info("login.usuarioDTO:{}", usuarioDTO);
+            log.info("Datos front login : {}", applicationUtil.toJson(usuarioDTO));
+
             Optional<Usuario> optional = usuarioRepository.findByUsuario(usuarioDTO.getUsuario());
             if (optional.isEmpty()) {
                 throw new ServiceLayerException(messageProvider.getMessageNotFound(usuarioDTO.getUsuario()));
@@ -108,7 +109,7 @@ public class AuthServiceImpl implements AuthService {
                 throw new ServiceLayerException("Usuario inactivo");
             }
 
-            if(!passwordEncoder.matches(usuarioDTO.getContrasena(), usuario.getContrasena())) {
+            if (!passwordEncoder.matches(usuarioDTO.getContrasena(), usuario.getContrasena())) {
                 throw new ServiceLayerException("Contraseña incorrecta");
             }
 

@@ -7,12 +7,14 @@ import com.revoktek.reysol.core.enums.TipoPrecioEnum;
 import com.revoktek.reysol.core.exceptions.ServiceLayerException;
 import com.revoktek.reysol.core.i18n.MessageProvider;
 import com.revoktek.reysol.core.utils.ApplicationUtil;
+import com.revoktek.reysol.dto.CorteDTO;
 import com.revoktek.reysol.dto.EmpleadoDTO;
 import com.revoktek.reysol.dto.ProductoCancelacionDTO;
 import com.revoktek.reysol.dto.InventarioDTO;
 import com.revoktek.reysol.dto.PedidoDTO;
 import com.revoktek.reysol.dto.PedidoProductoDTO;
 import com.revoktek.reysol.dto.ProductoDTO;
+import com.revoktek.reysol.dto.TipoCorteDTO;
 import com.revoktek.reysol.dto.UnidadMedidaDTO;
 import com.revoktek.reysol.persistence.entities.ProductoCancelacion;
 import com.revoktek.reysol.persistence.entities.Cliente;
@@ -25,6 +27,7 @@ import com.revoktek.reysol.persistence.entities.Pedido;
 import com.revoktek.reysol.persistence.entities.PedidoProducto;
 import com.revoktek.reysol.persistence.entities.PrecioCliente;
 import com.revoktek.reysol.persistence.entities.Producto;
+import com.revoktek.reysol.persistence.entities.TipoCorte;
 import com.revoktek.reysol.persistence.entities.TipoMovimiento;
 import com.revoktek.reysol.persistence.entities.UnidadMedida;
 import com.revoktek.reysol.persistence.repositories.CorteRepository;
@@ -120,6 +123,24 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
                             .empleado(empleadoDTO)
                             .build();
                 }
+                Corte corte = pedidoProducto.getCorte();
+                CorteDTO corteDTO = null;
+                if(applicationUtil.nonNull(corte)) {
+                    corteDTO = new CorteDTO();
+                    corteDTO.setIdCorte(corte.getIdCorte());
+                    corteDTO.setCantidad(corte.getCantidad());
+                    corteDTO.setPrecioPieza(corte.getPrecioPieza());
+                    corteDTO.setPrecioKilo(corte.getPrecioKilo());
+                    corteDTO.setProducto(productoDTO);
+
+                    TipoCorte tipoCorte = corte.getTipoCorte();
+                    TipoCorteDTO tipoCorteDTO = new TipoCorteDTO();
+                    tipoCorteDTO.setIdTipoCorte(tipoCorte.getIdTipoCorte());
+                    tipoCorteDTO.setNombre(tipoCorte.getNombre());
+                    tipoCorteDTO.setDescripcion(tipoCorte.getDescripcion());
+
+                    corteDTO.setTipoCorte(tipoCorteDTO);
+                }
 
 
                 return PedidoProductoDTO.builder()
@@ -138,6 +159,7 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
                         .diferencia(pedidoProducto.getDiferencia())
                         .tipoPrecio(pedidoProducto.getTipoPrecio())
                         .producto(productoDTO)
+                        .corte(corteDTO)
                         .build();
 
             }).toList();
@@ -256,11 +278,14 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
 
                 PedidoProducto pedidoProducto = new PedidoProducto();
                 pedidoProducto.setEstatus(Boolean.TRUE);
-                pedidoProducto.setCantidadSolicitada(productoDTO.getCantidadDespachada());
-                pedidoProducto.setCantidadDespachada(productoDTO.getCantidadDespachada());
+                pedidoProducto.setCantidadSolicitada(productoDTO.getCantidadSolicitada());
+                pedidoProducto.setCantidadDespachada(productoDTO.getCantidadSolicitada());
+                pedidoProducto.setCantidadEntregada(productoDTO.getCantidadSolicitada());
                 pedidoProducto.setDiferencia(BigDecimal.ZERO);
-                pedidoProducto.setPesoDespachado(productoDTO.getPesoDespachado());
-                pedidoProducto.setPesoEntregado(productoDTO.getPesoDespachado());
+                pedidoProducto.setPesoSolicitado(productoDTO.getPesoSolicitado());
+                pedidoProducto.setPesoDespachado(productoDTO.getPesoSolicitado());
+                pedidoProducto.setPesoEntregado(productoDTO.getPesoSolicitado());
+                pedidoProducto.setCantidadFrias(productoDTO.getCantidadFrias());
                 pedidoProducto.setPedido(pedido);
                 pedidoProducto.setProducto(producto);
                 pedidoProducto.setInventario(inventario);
@@ -378,10 +403,10 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
             for (PedidoProductoDTO productoDTO : productos) {
                 Long idCorte = productoDTO.getCorte().getIdCorte();
                 Corte corte = corteRepository.findById(idCorte).orElseThrow(() -> new ServiceLayerException(messageProvider.getMessageNotFound(idCorte)));
-
+                TipoCorte tipoCorte = corte.getTipoCorte();
                 Producto producto = corte.getProducto();
 
-                PrecioCliente precioCliente = precioClienteRepository.findByProductoAndClienteAndEstatus(producto, cliente, Boolean.TRUE);
+                PrecioCliente precioCliente = precioClienteRepository.findByProductoAndClienteAndEstatusAndTipoCorte(producto, cliente, Boolean.TRUE, tipoCorte);
                 Optional<CorteHistorial> corteHistorial = corteHistorialRepository.findAllByCorteOrderByFechaRegistroDesc(corte).stream().findFirst();
 
 

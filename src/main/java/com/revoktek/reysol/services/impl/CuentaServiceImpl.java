@@ -16,8 +16,17 @@ import com.revoktek.reysol.dto.FormaPagoDTO;
 import com.revoktek.reysol.dto.MetodoPagoDTO;
 import com.revoktek.reysol.dto.PagoDTO;
 import com.revoktek.reysol.dto.PedidoDTO;
+import com.revoktek.reysol.dto.RutaDTO;
+import com.revoktek.reysol.dto.filter.FilterPedidoDTO;
+import com.revoktek.reysol.persistence.entities.Empleado;
+import com.revoktek.reysol.persistence.entities.EstatusPago;
+import com.revoktek.reysol.persistence.entities.EstatusPedido;
 import com.revoktek.reysol.persistence.entities.Pago;
+import com.revoktek.reysol.persistence.entities.Pedido;
+import com.revoktek.reysol.persistence.entities.Ruta;
 import com.revoktek.reysol.persistence.repositories.PagoRepository;
+import com.revoktek.reysol.persistence.repositories.PedidoRepository;
+import com.revoktek.reysol.services.PedidoService;
 import org.springframework.stereotype.Service;
 
 import com.revoktek.reysol.core.exceptions.ServiceLayerException;
@@ -42,6 +51,7 @@ public class CuentaServiceImpl implements CuentaService {
     private final CuentaRepository cuentaRepository;
     private final PagoRepository pagoRepository;
     private final ApplicationUtil applicationUtil;
+    private final PedidoRepository pedidoRepository;
 
 
     @Override
@@ -140,7 +150,81 @@ public class CuentaServiceImpl implements CuentaService {
             List<PagoDTO> pagos = findAllByCuenta(cuenta.getIdCuenta());
             cuentaDTO.setPagos(pagos);
 
+            FilterPedidoDTO filterPedidoDTO = new FilterPedidoDTO();
+            filterPedidoDTO.setIdCliente(idCliente);
+            List<PedidoDTO> pedidos = this.findAllPedidosByCliente(filterPedidoDTO);
+            cuentaDTO.setPedidos(pedidos);
+
+
             return cuentaDTO;
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new ServiceLayerException(e);
+        }
+    }
+
+    public List<PedidoDTO> findAllPedidosByCliente(FilterPedidoDTO filterPedido) throws ServiceLayerException {
+        try {
+
+            filterPedido = applicationUtil.isNull(filterPedido) ? new FilterPedidoDTO() : filterPedido;
+
+            log.info("findAllByFiltro.filterPedido : {}", filterPedido);
+
+            List<Integer> estatusList = (applicationUtil.isEmptyList(filterPedido.getEstatusList()) ? null : filterPedido.getEstatusList());
+            List<Integer> estatusPagoList = (applicationUtil.isEmptyList(filterPedido.getEstatusPagoList()) ? null : filterPedido.getEstatusPagoList());
+
+            List<Pedido> pedidos = pedidoRepository.findAllByFilter(
+                    filterPedido.getFechaInicio(),
+                    filterPedido.getFechaFin(),
+                    filterPedido.getIdRuta(),
+                    estatusList,
+                    estatusPagoList,
+                    filterPedido.getIdEmpleadoEntrega(),
+                    filterPedido.getBusqueda(),
+                    filterPedido.getIdTipoCliente(),
+                    filterPedido.getIdCliente()
+            );
+            if (applicationUtil.isEmptyList(pedidos)) {
+                log.info("Sin elementos encontrados.");
+                return Collections.emptyList();
+            }
+            log.info("{} elementos encontrados.", pedidos.size());
+
+            List<PedidoDTO> pedidoDTOList = pedidos.stream().map(pedido -> {
+                PedidoDTO pedidoDTO = PedidoDTO.builder()
+                        .idPedido(pedido.getIdPedido())
+                        .clave(pedido.getClave())
+                        .fechaEntrega(pedido.getFechaEntrega())
+                        .fechaSolicitud(pedido.getFechaSolicitud())
+                        .total(pedido.getTotal())
+                        .abonado(pedido.getAbonado())
+                        .pendiente(pedido.getPendiente())
+                        .build();
+
+                EstatusPedido estatusPedido = pedido.getEstatusPedido();
+                if (applicationUtil.nonNull(estatusPedido)) {
+                    EstatusPedidoDTO estatusPedidoDTO = EstatusPedidoDTO.builder()
+                            .idEstatusPedido(estatusPedido.getIdEstatusPedido())
+                            .nombre(estatusPedido.getNombre())
+                            .descripcion(estatusPedido.getDescripcion())
+                            .build();
+                    pedidoDTO.setEstatusPedido(estatusPedidoDTO);
+                }
+
+                EstatusPago estatusPago = pedido.getEstatusPago();
+                if (applicationUtil.nonNull(estatusPago)) {
+                    EstatusPagoDTO estatusPagoDTO = EstatusPagoDTO.builder()
+                            .idEstatusPago(estatusPago.getIdEstatusPago())
+                            .nombre(estatusPago.getNombre())
+                            .descripcion(estatusPago.getDescripcion())
+                            .build();
+                    pedidoDTO.setEstatusPago(estatusPagoDTO);
+                }
+
+                return pedidoDTO;
+            }).toList();
+
+            return pedidoDTOList;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new ServiceLayerException(e);

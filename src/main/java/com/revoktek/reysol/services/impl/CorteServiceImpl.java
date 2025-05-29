@@ -55,6 +55,10 @@ public class CorteServiceImpl implements CorteService {
     @Transactional
     public void save(CorteDTO corteDTO, String token) throws ServiceLayerException {
         try {
+
+            log.info("Datos front save.corteDTO : {}", applicationUtil.toJson(corteDTO));
+
+
             ProductoDTO productoDTO = corteDTO.getProducto();
             Producto producto;
             if (productoDTO.getIdProducto() == null || productoDTO.getIdProducto() == 0) {
@@ -82,7 +86,7 @@ public class CorteServiceImpl implements CorteService {
                 corte.setTipoCorte(tipoCorte);
             }
             corte.setEstatus(Boolean.TRUE);
-            corte.setCantidad(corteDTO.getCantidad());
+            corte.setCantidad(Objects.requireNonNullElse(corteDTO.getCantidad(), corte.getCantidad()));
             corte.setPrecioKilo(Objects.requireNonNullElse(corteDTO.getPrecioKilo(), BigDecimal.ZERO));
             corte.setPrecioPieza(Objects.requireNonNullElse(corteDTO.getPrecioPieza(), BigDecimal.ZERO));
             corteRepository.save(corte);
@@ -92,7 +96,7 @@ public class CorteServiceImpl implements CorteService {
             CorteHistorial corteHistorial = new CorteHistorial();
             corteHistorial.setPrecioKilo(Objects.requireNonNullElse(corteDTO.getPrecioKilo(), BigDecimal.ZERO));
             corteHistorial.setPrecioPieza(Objects.requireNonNullElse(corteDTO.getPrecioPieza(), BigDecimal.ZERO));
-            corteHistorial.setCantidad(corteDTO.getCantidad());
+            corteHistorial.setCantidad(Objects.requireNonNullElse(corteDTO.getCantidad(), corte.getCantidad()));
             corteHistorial.setFechaRegistro(new Date());
             corteHistorial.setCorte(corte);
             corteHistorial.setEmpleado(empleado);
@@ -107,6 +111,7 @@ public class CorteServiceImpl implements CorteService {
     @Override
     public TipoCorteDTO findById(Integer idTipoCorte) throws ServiceLayerException {
         try {
+            log.info("Datos front save.idTipoCorte : {}", idTipoCorte);
 
             Optional<TipoCorte> optional = tipoCorteRepository.findById(idTipoCorte);
             if (optional.isEmpty()) {
@@ -262,6 +267,7 @@ public class CorteServiceImpl implements CorteService {
     @Override
     public void delete(CorteDTO corteDTO, String token) throws ServiceLayerException {
         try {
+            log.info("Datos front delete.corteDTO : {}", applicationUtil.toJson(corteDTO));
 
             Corte corte = corteRepository.findById(corteDTO.getIdCorte()).orElseThrow(() -> new ServiceLayerException("El corte no existe"));
             corte.setEstatus(Boolean.FALSE);

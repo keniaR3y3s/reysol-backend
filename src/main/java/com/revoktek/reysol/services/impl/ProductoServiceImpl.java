@@ -6,6 +6,7 @@ import com.revoktek.reysol.core.exceptions.ServiceLayerException;
 import com.revoktek.reysol.core.utils.ApplicationUtil;
 import com.revoktek.reysol.dto.PrecioClienteDTO;
 import com.revoktek.reysol.dto.ProductoDTO;
+import com.revoktek.reysol.dto.TipoCorteDTO;
 import com.revoktek.reysol.dto.UnidadMedidaDTO;
 import com.revoktek.reysol.persistence.entities.Cliente;
 import com.revoktek.reysol.persistence.entities.Contacto;
@@ -14,6 +15,7 @@ import com.revoktek.reysol.persistence.entities.PrecioCliente;
 import com.revoktek.reysol.persistence.entities.Producto;
 import com.revoktek.reysol.persistence.entities.Ruta;
 import com.revoktek.reysol.persistence.entities.TipoCliente;
+import com.revoktek.reysol.persistence.entities.TipoCorte;
 import com.revoktek.reysol.persistence.repositories.PrecioClienteRepository;
 import com.revoktek.reysol.persistence.repositories.ProductoRepository;
 import com.revoktek.reysol.services.ProductoService;
@@ -95,6 +97,13 @@ public class ProductoServiceImpl implements ProductoService {
                         .nombre(producto.getNombre())
                         .descripcion(producto.getNombre())
                         .build();
+                TipoCorte tipoCorte = precioCliente.getTipoCorte();
+                TipoCorteDTO tipoCorteDTO = TipoCorteDTO.builder().
+                    idTipoCorte(tipoCorte.getIdTipoCorte())
+                        .nombre(tipoCorte.getNombre())
+                        .descripcion(tipoCorte.getDescripcion())
+                        .estatus(tipoCorte.getEstatus())
+                .build();
 
                 PrecioClienteDTO precioClienteDTO = new PrecioClienteDTO();
                 precioClienteDTO.setIdPrecioCliente(precioCliente.getIdPrecioCliente());
@@ -103,7 +112,7 @@ public class ProductoServiceImpl implements ProductoService {
                 precioClienteDTO.setPrecioKilo(precioCliente.getPrecioKilo());
                 precioClienteDTO.setEstatus(precioCliente.getEstatus());
                 precioClienteDTO.setFechaRegistro(precioCliente.getFechaRegistro());
-
+                precioClienteDTO.setTipoCorte(tipoCorteDTO);
                 return precioClienteDTO;
             }).toList();
 
@@ -123,8 +132,9 @@ public class ProductoServiceImpl implements ProductoService {
 
             Cliente cliente = new Cliente(precioClienteDTO.getCliente().getIdCliente());
             Producto producto = new Producto(precioClienteDTO.getProducto().getIdProducto());
+            TipoCorte tipoCorte = new TipoCorte(precioClienteDTO.getTipoCorte().getIdTipoCorte());
 
-            PrecioCliente precioCliente = precioClienteRepository.findByProductoAndClienteAndEstatus(producto, cliente,Boolean.TRUE);
+            PrecioCliente precioCliente = precioClienteRepository.findByProductoAndClienteAndEstatusAndTipoCorte(producto, cliente,Boolean.TRUE, tipoCorte);
 
             if (applicationUtil.isNull(precioCliente)) {
 
@@ -135,6 +145,7 @@ public class ProductoServiceImpl implements ProductoService {
                 precioCliente.setEstatus(Boolean.TRUE);
                 precioCliente.setProducto(producto);
                 precioCliente.setCliente(cliente);
+                precioCliente.setTipoCorte(tipoCorte);
                 precioClienteRepository.save(precioCliente);
 
             } else if ((precioCliente.getPrecioPieza().compareTo(precioClienteDTO.getPrecioPieza()) != 0) ||
@@ -149,6 +160,7 @@ public class ProductoServiceImpl implements ProductoService {
                 precioCliente.setEstatus(Boolean.TRUE);
                 precioCliente.setProducto(producto);
                 precioCliente.setCliente(cliente);
+                precioCliente.setTipoCorte(tipoCorte);
                 precioClienteRepository.save(precioCliente);
             }
 

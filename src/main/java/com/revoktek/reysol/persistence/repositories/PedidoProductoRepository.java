@@ -17,6 +17,8 @@ public interface PedidoProductoRepository extends JpaRepository<PedidoProducto, 
                 pedidoProducto
             FROM PedidoProducto pedidoProducto
             INNER JOIN FETCH pedidoProducto.producto producto
+            INNER JOIN FETCH pedidoProducto.corte corte
+            INNER JOIN FETCH corte.tipoCorte tipoCorte
             INNER JOIN FETCH producto.unidadMedida unidadMedida
             LEFT JOIN FETCH pedidoProducto.inventario inventario
             LEFT JOIN FETCH pedidoProducto.productoCancelacion productoCancelacion

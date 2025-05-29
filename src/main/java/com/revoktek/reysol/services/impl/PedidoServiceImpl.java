@@ -7,6 +7,7 @@ import com.revoktek.reysol.core.exceptions.ServiceLayerException;
 import com.revoktek.reysol.core.i18n.MessageProvider;
 import com.revoktek.reysol.core.utils.ApplicationUtil;
 import com.revoktek.reysol.core.utils.MapperUtil;
+import com.revoktek.reysol.dto.CorteDTO;
 import com.revoktek.reysol.dto.ProductoCancelacionDTO;
 import com.revoktek.reysol.dto.ClienteDTO;
 import com.revoktek.reysol.dto.DomicilioDTO;
@@ -17,7 +18,9 @@ import com.revoktek.reysol.dto.MetodoPagoDTO;
 import com.revoktek.reysol.dto.PagoDTO;
 import com.revoktek.reysol.dto.PedidoDTO;
 import com.revoktek.reysol.dto.PedidoProductoDTO;
+import com.revoktek.reysol.dto.ProductoDTO;
 import com.revoktek.reysol.dto.RutaDTO;
+import com.revoktek.reysol.dto.TipoCorteDTO;
 import com.revoktek.reysol.dto.filter.FilterPedidoDTO;
 import com.revoktek.reysol.persistence.entities.Cliente;
 import com.revoktek.reysol.persistence.entities.Domicilio;
@@ -43,9 +46,12 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -74,7 +80,7 @@ public class PedidoServiceImpl implements PedidoService {
 
             filterPedido = applicationUtil.isNull(filterPedido) ? new FilterPedidoDTO() : filterPedido;
 
-            log.info("findAllByFiltro.filterPedido : {}", filterPedido);
+            log.info("Datos front findAllByFilter.filterPedido : {}", applicationUtil.toJson(filterPedido));
 
             List<Integer> estatusList = (applicationUtil.isEmptyList(filterPedido.getEstatusList()) ? null : filterPedido.getEstatusList());
             List<Integer> estatusPagoList = (applicationUtil.isEmptyList(filterPedido.getEstatusPagoList()) ? null : filterPedido.getEstatusPagoList());
@@ -87,7 +93,8 @@ public class PedidoServiceImpl implements PedidoService {
                     estatusPagoList,
                     filterPedido.getIdEmpleadoEntrega(),
                     filterPedido.getBusqueda(),
-                    filterPedido.getIdTipoCliente()
+                    filterPedido.getIdTipoCliente(),
+                    filterPedido.getIdCliente()
             );
             if (applicationUtil.isEmptyList(pedidos)) {
                 log.info("Sin elementos encontrados.");
@@ -102,6 +109,8 @@ public class PedidoServiceImpl implements PedidoService {
                         .fechaEntrega(pedido.getFechaEntrega())
                         .fechaSolicitud(pedido.getFechaSolicitud())
                         .total(pedido.getTotal())
+                        .abonado(pedido.getAbonado())
+                        .pendiente(pedido.getPendiente())
                         .build();
                 Cliente cliente = pedido.getCliente();
                 if (applicationUtil.nonNull(cliente)) {
@@ -165,6 +174,7 @@ public class PedidoServiceImpl implements PedidoService {
     @Override
     public PedidoDTO findByID(Long id) throws ServiceLayerException {
         try {
+            log.info("Datos front findByID.idPedido : {}", id);
 
             Optional<Pedido> pedidoOptional = pedidoRepository.findById(id);
             if (pedidoOptional.isEmpty()) {
@@ -180,6 +190,7 @@ public class PedidoServiceImpl implements PedidoService {
                     .fechaEntrega(pedido.getFechaEntrega())
                     .fechaDespacha(pedido.getFechaDespacha())
                     .abonado(pedido.getAbonado())
+                    .pendiente(pedido.getPendiente())
                     .total(pedido.getTotal())
                     .pendiente(pedido.getPendiente())
                     .build();
@@ -276,6 +287,9 @@ public class PedidoServiceImpl implements PedidoService {
     public void saveDispatch(PedidoDTO pedidoDTO, String token) throws ServiceLayerException {
         try {
 
+            log.info("Datos front saveDispatch.pedidoDTO : {}", applicationUtil.toJson(pedidoDTO));
+            log.info("Datos front saveDispatch.token : {}",token);
+
             Optional<Pedido> pedidoOptional = pedidoRepository.findById(pedidoDTO.getIdPedido());
             if (pedidoOptional.isEmpty()) {
                 throw new ServiceLayerException(messageProvider.getMessageNotFound(pedidoDTO.getIdPedido()));
@@ -294,6 +308,8 @@ public class PedidoServiceImpl implements PedidoService {
 
             BigDecimal total = pedidoProductoService.saveAllDispatch(pedidoDTO.getProductos(), empleadoDespacha.getIdEmpleado());
             pedido.setTotal(total);
+            BigDecimal abonado = pedido.getAbonado() != null ? pedido.getAbonado() : BigDecimal.ZERO;
+            pedido.setPendiente(total.subtract(abonado));
             pedidoRepository.save(pedido);
 
             Cliente cliente = pedido.getCliente();
@@ -309,6 +325,10 @@ public class PedidoServiceImpl implements PedidoService {
     @Transactional
     public void saveExtemporaneo(PedidoDTO pedidoDTO, String token) throws ServiceLayerException {
         try {
+
+            log.info("Datos front saveExtemporaneo.pedidoDTO : {}", applicationUtil.toJson(pedidoDTO));
+            log.info("Datos front saveExtemporaneo.token : {}", token);
+
 
             Date now = new Date();
             String prefix = applicationUtil.getPrefixPedido(TipoClienteEnum.EXTEMPORANEO.getValue());
@@ -343,6 +363,7 @@ public class PedidoServiceImpl implements PedidoService {
 
             BigDecimal total = pedidoProductoService.saveProductosExtemporaneos(pedidoDTO.getProductos(), pedido.getIdPedido(), empleado.getIdEmpleado());
             pedido.setTotal(total);
+            pedido.setAbonado(total);
 //            pedido.setPendiente(pedido.getTotal().subtract(pedido.getAbonado()));
 
             pedidoRepository.save(pedido);
@@ -358,6 +379,8 @@ public class PedidoServiceImpl implements PedidoService {
     @Transactional
     public void saveEmpleadoEntrega(PedidoDTO pedidoDTO) throws ServiceLayerException {
         try {
+
+            log.info("Datos front saveEmpleadoEntrega.pedidoDTO : {}", applicationUtil.toJson(pedidoDTO));
 
             Optional<Pedido> pedidoOptional = pedidoRepository.findById(pedidoDTO.getIdPedido());
             if (pedidoOptional.isEmpty()) {
@@ -383,6 +406,8 @@ public class PedidoServiceImpl implements PedidoService {
     @Transactional
     public void removeEmpleadoEntrega(PedidoDTO pedidoDTO) throws ServiceLayerException {
         try {
+
+            log.info("Datos front removeEmpleadoEntrega.pedidoDTO : {}", applicationUtil.toJson(pedidoDTO));
 
             Optional<Pedido> pedidoOptional = pedidoRepository.findById(pedidoDTO.getIdPedido());
             if (pedidoOptional.isEmpty()) {
@@ -411,6 +436,10 @@ public class PedidoServiceImpl implements PedidoService {
     public void saveDelivery(PedidoDTO pedidoDTO, String token) throws ServiceLayerException {
         try {
 
+            log.info("Datos front saveDelivery.pedidoDTO : {}", applicationUtil.toJson(pedidoDTO));
+            log.info("Datos front saveDelivery.token : {}", token);
+
+
             Optional<Pedido> pedidoOptional = pedidoRepository.findById(pedidoDTO.getIdPedido());
             if (pedidoOptional.isEmpty()) {
                 throw new ServiceLayerException(messageProvider.getMessageNotFound(pedidoDTO.getIdPedido()));
@@ -435,6 +464,9 @@ public class PedidoServiceImpl implements PedidoService {
                 pedido.setEmpleadoDespacha(empleadoEntrega);
             }
 
+            BigDecimal abonado = pedido.getAbonado() != null ? pedido.getAbonado() : BigDecimal.ZERO;
+            pedido.setPendiente(pedido.getTotal().subtract(abonado));
+
             pedidoRepository.save(pedido);
             pedidoProductoService.saveAllDeliveryProducts(pedidoDTO.getProductos());
 
@@ -448,7 +480,8 @@ public class PedidoServiceImpl implements PedidoService {
     @Transactional
     public void save(PedidoDTO pedidoDTO, String token) throws ServiceLayerException {
         try {
-
+            log.info("Datos front save.pedidoDTO : {}", applicationUtil.toJson(pedidoDTO));
+            log.info("Datos front save.token : {}", token);
 
             Cliente cliente = clienteRepository.findByIdCliente(pedidoDTO.getCliente().getIdCliente());
             EstatusPedido estatusPedido = new EstatusPedido(EstatusPedidoEnum.PENDIENTE.getValue());
@@ -492,6 +525,7 @@ public class PedidoServiceImpl implements PedidoService {
     @Override
     public List<PedidoDTO> findByCliente(Long idCliente) throws ServiceLayerException {
         try {
+            log.info("Datos front findByCliente.token : {}", idCliente);
 
             List<Pedido> pedidos = pedidoRepository.findAllByCliente(idCliente);
             if (applicationUtil.isEmptyList(pedidos)) {
@@ -515,6 +549,7 @@ public class PedidoServiceImpl implements PedidoService {
     @Override
     public List<PedidoDTO> findAllByEmpleadoEntrega(Long idEmpleado) throws ServiceLayerException {
         try {
+            log.info("Datos front findAllByEmpleadoEntrega.idEmpleado : {}", idEmpleado);
 
             List<Pedido> pedidos = pedidoRepository.findAllByEmpleadoEntrega(idEmpleado);
             if (applicationUtil.isEmptyList(pedidos)) {
@@ -560,8 +595,70 @@ public class PedidoServiceImpl implements PedidoService {
     }
 
     @Override
+    public List<PedidoProductoDTO> findAllProductsByEmpleadoEntrega(Long idEmpleado) throws ServiceLayerException {
+        try {
+            log.info("Datos front findAllProductsByEmpleadoEntrega.idEmpleado : {}", idEmpleado);
+
+            FilterPedidoDTO filterPedido = new FilterPedidoDTO();
+            filterPedido.setEstatusList(Collections.singletonList(EstatusPedidoEnum.ASIGNADO.getValue()));
+            filterPedido.setIdEmpleadoEntrega(idEmpleado);
+
+            List<PedidoDTO> pedidoDTOS = new ArrayList<>(this.findAllByFilter(filterPedido));
+
+            filterPedido.setEstatusList(Collections.singletonList(EstatusPedidoEnum.DESPACHADO.getValue()));
+            filterPedido.setIdEmpleadoEntrega(null);
+
+            List<PedidoDTO> pedidoDTOSDespachar = this.findAllByFilter(filterPedido);
+
+            pedidoDTOS.addAll(pedidoDTOSDespachar);
+
+
+            if (applicationUtil.isEmptyList(pedidoDTOS)) {
+                log.info("Sin elementos encontrados.");
+                return Collections.emptyList();
+            }
+
+            Map<String, PedidoProductoDTO> agrupados = new HashMap<>();
+
+            for (PedidoDTO pedido : pedidoDTOS) {
+                List<PedidoProductoDTO> productos = pedidoProductoService.findAllByProducto(pedido.getIdPedido());
+
+                for (PedidoProductoDTO pp : productos) {
+                    Integer tipoCorteId = Optional.ofNullable(pp.getCorte())
+                            .map(CorteDTO::getTipoCorte)
+                            .map(TipoCorteDTO::getIdTipoCorte)
+                            .orElse(null);
+                    Long productoId = Optional.ofNullable(pp.getProducto())
+                            .map(ProductoDTO::getIdProducto)
+                            .orElse(null);
+
+                    if (tipoCorteId == null || productoId == null) continue;
+
+                    String key = tipoCorteId + "-" + productoId;
+
+                    if (agrupados.containsKey(key)) {
+                        PedidoProductoDTO existente = agrupados.get(key);
+                        existente.setCantidadDespachada(existente.getCantidadDespachada().add(pp.getCantidadDespachada()));
+                        existente.setPesoDespachado(existente.getPesoDespachado().add(pp.getPesoDespachado()));
+                    } else {
+                        agrupados.put(key, pp);
+                    }
+                }
+            }
+
+            return new ArrayList<>(agrupados.values());
+
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new ServiceLayerException(e);
+        }
+    }
+
+    @Override
     public void cancelPedidoProducto(ProductoCancelacionDTO productoCancelacionDTO, String token) throws ServiceLayerException {
         try {
+
+            log.info("Datos front cancelPedidoProducto.productoCancelacionDTO : {}", applicationUtil.toJson(productoCancelacionDTO));
 
             Empleado empleado = jwtService.getEmpleado(token);
             productoCancelacionDTO.setEmpleado(new EmpleadoDTO(empleado.getIdEmpleado()));

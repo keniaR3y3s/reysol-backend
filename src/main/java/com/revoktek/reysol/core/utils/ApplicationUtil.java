@@ -1,5 +1,7 @@
 package com.revoktek.reysol.core.utils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.revoktek.reysol.core.enums.TipoClienteEnum;
 import org.springframework.stereotype.Component;
 
@@ -11,6 +13,7 @@ import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -18,6 +21,12 @@ import java.util.regex.Pattern;
 
 @Component
 public class ApplicationUtil {
+
+    private final ObjectMapper objectMapper;
+
+    public ApplicationUtil(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     public boolean isNull(Object object) {
         return object == null;
@@ -116,5 +125,17 @@ public class ApplicationUtil {
     }
     public String formatBigDecimal(BigDecimal bd) {
         return bd.setScale(2, RoundingMode.HALF_UP).toPlainString();
+    }
+
+    public String toJson(Object object) {
+        try {
+            if(isNull(object)) {
+                return objectMapper.writeValueAsString(new HashMap<String, Object>() {
+                });
+            }
+            return objectMapper.writeValueAsString(object);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error al convertir objeto a JSON", e);
+        }
     }
 }

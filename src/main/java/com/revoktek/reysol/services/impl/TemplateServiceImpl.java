@@ -1,33 +1,22 @@
 package com.revoktek.reysol.services.impl;
 
+import com.revoktek.reysol.core.enums.EstatusPedidoEnum;
 import com.revoktek.reysol.core.exceptions.ServiceLayerException;
 import com.revoktek.reysol.core.utils.ApplicationUtil;
 import com.revoktek.reysol.dto.PedidoDTO;
 import com.revoktek.reysol.dto.PedidoProductoDTO;
-import com.revoktek.reysol.dto.PrecioClienteDTO;
-import com.revoktek.reysol.dto.ProductoDTO;
 import com.revoktek.reysol.dto.TemplateDTO;
-import com.revoktek.reysol.dto.UnidadMedidaDTO;
-import com.revoktek.reysol.persistence.entities.Cliente;
-import com.revoktek.reysol.persistence.entities.PrecioCliente;
-import com.revoktek.reysol.persistence.entities.Producto;
 import com.revoktek.reysol.persistence.entities.Template;
-import com.revoktek.reysol.persistence.repositories.PrecioClienteRepository;
-import com.revoktek.reysol.persistence.repositories.ProductoRepository;
 import com.revoktek.reysol.persistence.repositories.TemplateRepository;
 import com.revoktek.reysol.services.PedidoService;
-import com.revoktek.reysol.services.ProductoService;
 import com.revoktek.reysol.services.TemplateService;
-import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 
 @Slf4j
@@ -61,12 +50,36 @@ public class TemplateServiceImpl implements TemplateService {
             if (applicationUtil.nonEmptyList(pedidoDTO.getProductos())) {
                 products = new StringBuilder();
                 for (PedidoProductoDTO item : pedidoDTO.getProductos()) {
-                    products.append("<tr>");
-                    products.append("<td>").append(item.getProducto().getNombre()).append("</td>");
-                    products.append("<td>").append(applicationUtil.formatBigDecimal(item.getCantidadSolicitada())).append("</td>");
-                    products.append("<td>").append(applicationUtil.formatBigDecimal(item.getPesoEntregado())).append("kg</td>");
-                    products.append("<td>").append(applicationUtil.formatMoney(item.getPrecio())).append("</td>");
-                    products.append("<tr>");
+                    if (Objects.equals(pedidoDTO.getEstatusPedido().getIdEstatusPedido(), EstatusPedidoEnum.ENTREGADO.getValue())) {
+                        products.append("<tr>");
+                        products.append("<td>").append(item.getProducto().getNombre()).append("</td>");
+                        products.append("<td>").append(applicationUtil.formatBigDecimal(item.getCantidadEntregada())).append("</td>");
+                        products.append("<td>").append(applicationUtil.formatBigDecimal(item.getPesoEntregado())).append("kg</td>");
+                        products.append("<td>").append(applicationUtil.formatMoney(item.getSubtotal())).append("</td>");
+                        products.append("<tr>");
+                    } else if (
+                            (Objects.equals(pedidoDTO.getEstatusPedido().getIdEstatusPedido(), EstatusPedidoEnum.DESPACHADO.getValue())) ||
+                                    (Objects.equals(pedidoDTO.getEstatusPedido().getIdEstatusPedido(), EstatusPedidoEnum.ASIGNADO.getValue()))
+                    ) {
+                        products.append("<tr>");
+                        products.append("<td>").append(item.getProducto().getNombre()).append("</td>");
+                        products.append("<td>").append(applicationUtil.formatBigDecimal(item.getCantidadDespachada())).append("</td>");
+                        products.append("<td>").append(applicationUtil.formatBigDecimal(item.getPesoDespachado())).append("kg</td>");
+                        products.append("<td>").append(applicationUtil.formatMoney(item.getSubtotal())).append("</td>");
+                        products.append("<tr>");
+                    } else if (
+                            (Objects.equals(pedidoDTO.getEstatusPedido().getIdEstatusPedido(), EstatusPedidoEnum.PENDIENTE.getValue())) ||
+                                    (Objects.equals(pedidoDTO.getEstatusPedido().getIdEstatusPedido(), EstatusPedidoEnum.CANCELADO.getValue()))
+
+                    ) {
+                        products.append("<tr>");
+                        products.append("<td>").append(item.getProducto().getNombre()).append("</td>");
+                        products.append("<td>").append(applicationUtil.formatBigDecimal(item.getCantidadSolicitada())).append("</td>");
+                        products.append("<td>").append(applicationUtil.formatBigDecimal(item.getPesoSolicitado())).append("kg</td>");
+                        products.append("<td>").append(applicationUtil.formatMoney(item.getSubtotal())).append("</td>");
+                        products.append("<tr>");
+                    }
+
                 }
             }
             params.put("P_PRODUCTOS", products.toString());

@@ -49,6 +49,11 @@ public class PrecioCliente {
     @JoinColumn(name = "producto_id")
     private Producto producto;
 
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tipo_corte_id")
+    private TipoCorte tipoCorte;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cliente_id")
     private Cliente cliente;

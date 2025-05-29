@@ -30,6 +30,7 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
                 AND (:estatusPagoList IS NULL OR estatusPago.idEstatusPago IN (:estatusPagoList))
                 AND (:idEmpleadoEntrega IS NULL OR empleadoEntrega.idEmpleado = :idEmpleadoEntrega)
                 AND (:idTipoCliente IS NULL OR tipoCliente.idTipoCliente = :idTipoCliente)
+                AND (:idCliente IS NULL OR cliente.idCliente = :idCliente)
                 AND ((:busqueda IS NULL OR cliente.alias ILIKE CONCAT('%', :busqueda, '%')))
             ORDER BY pedido.fechaSolicitud DESC
             """)
@@ -41,7 +42,9 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
             @Param("estatusPagoList") List<Integer> estatusPagoList,
             @Param("idEmpleadoEntrega") Long idEmpleadoEntrega,
             @Param("busqueda") String busqueda,
-            @Param("idTipoCliente") Long idTipoCliente);
+            @Param("idTipoCliente") Long idTipoCliente,
+            @Param("idCliente") Long idCliente
+    );
 
     @Query("SELECT MAX(p.idPedido) FROM Pedido p")
     Long getMaxId();

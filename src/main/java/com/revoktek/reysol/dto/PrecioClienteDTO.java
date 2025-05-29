@@ -17,5 +17,6 @@ public class PrecioClienteDTO {
     private Date fechaRegistro;
     private Boolean estatus;
     private ProductoDTO producto;
+    private TipoCorteDTO tipoCorte;
     private ClienteDTO cliente;
 }

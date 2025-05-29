@@ -3,13 +3,14 @@ package com.revoktek.reysol.persistence.repositories;
 import com.revoktek.reysol.persistence.entities.Cliente;
 import com.revoktek.reysol.persistence.entities.PrecioCliente;
 import com.revoktek.reysol.persistence.entities.Producto;
+import com.revoktek.reysol.persistence.entities.TipoCorte;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 
 public interface PrecioClienteRepository extends JpaRepository<PrecioCliente, Long> {
-    PrecioCliente findByProductoAndClienteAndEstatus(Producto producto, Cliente cliente, Boolean estatus);
+    PrecioCliente findByProductoAndClienteAndEstatusAndTipoCorte(Producto producto, Cliente cliente, Boolean estatus, TipoCorte tipoCorte);
 
 
     @Query("""
@@ -17,11 +18,11 @@ public interface PrecioClienteRepository extends JpaRepository<PrecioCliente, Lo
                 precioCliente
             FROM PrecioCliente precioCliente
             INNER JOIN FETCH precioCliente.producto producto
+            INNER JOIN FETCH precioCliente.tipoCorte tipoCorte
             WHERE precioCliente.cliente = :cliente AND precioCliente.estatus = true
             ORDER BY producto.nombre ASC
             """)
     List<PrecioCliente> findAllByCliente(Cliente cliente);
 
-    PrecioCliente findByProductoAndCliente(Producto producto, Cliente cliente);
 
 }

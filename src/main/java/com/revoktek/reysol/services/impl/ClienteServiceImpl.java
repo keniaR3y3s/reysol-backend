@@ -48,6 +48,8 @@ public class ClienteServiceImpl implements ClienteService {
     @Override
     public List<ClienteDTO> findAllByFilter(String busqueda, Integer estatus) throws ServiceLayerException {
         try {
+            log.info("Datos front findAllByFilter.busqueda : {}", busqueda);
+            log.info("Datos front findAllByFilter.estatus : {}", estatus);
 
 //            Integer idTipoCliente = TipoClienteEnum.REGULAR.getValue();
             List<Cliente> clientes = clienteRepository.findAllByFilter(busqueda, estatus);
@@ -115,6 +117,8 @@ public class ClienteServiceImpl implements ClienteService {
     @Override
     public ClienteDTO findById(Long idCliente) throws ServiceLayerException {
         try {
+            log.info("Datos front findById.idCliente : {}", idCliente);
+
             Cliente cliente = clienteRepository.findByIdCliente(idCliente);
             if (applicationUtil.isNull(cliente)) {
                 throw new ServiceLayerException("Cliente no encontrado.");
@@ -132,6 +136,8 @@ public class ClienteServiceImpl implements ClienteService {
     @Transactional
     public void changeEstatus(Long idCliente) throws ServiceLayerException {
         try {
+            log.info("Datos front changeEstatus.idCliente : {}", idCliente);
+
             Cliente cliente = clienteRepository.findByIdCliente(idCliente);
             if (applicationUtil.isNull(cliente)) {
                 throw new ServiceLayerException("Cliente no encontrado");
@@ -150,6 +156,9 @@ public class ClienteServiceImpl implements ClienteService {
     @Transactional
     public void save(ClienteDTO clienteDTO) throws ServiceLayerException {
         try {
+
+            log.info("Datos front save.clienteDTO : {}", applicationUtil.toJson(clienteDTO));
+
             if(applicationUtil.isEmpty(clienteDTO.getAlias())){
                 clienteDTO.setAlias(clienteDTO.getNombre() );
             }
@@ -201,6 +210,8 @@ public class ClienteServiceImpl implements ClienteService {
     @Transactional
     public void update(ClienteDTO clienteDTO) throws ServiceLayerException {
         try {
+            log.info("Datos front update.clienteDTO : {}", applicationUtil.toJson(clienteDTO));
+
             if(applicationUtil.isEmpty(clienteDTO.getAlias())){
                 clienteDTO.setAlias(clienteDTO.getNombre() );
             }
