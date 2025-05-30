@@ -5,7 +5,7 @@ spring:
     resources:
       add-mappings: false
   datasource:
-    url: jdbc:mysql://localhost:3306/reysol_prod?useSSL=false
+    url: jdbc:mysql://localhost:3306/reysol_prod?allowPublicKeyRetrieval=true&useSSL=false
     username: mediuser
     password: Medi2022
     driver-class-name: com.mysql.cj.jdbc.Driver
