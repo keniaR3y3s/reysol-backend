@@ -7,6 +7,7 @@ import java.util.List;
 public interface CatalogueService {
 
     List<?> findAll(String entityName) throws ServiceLayerException;
+    List<?> findAllActive(String entityName) throws ServiceLayerException;
 
     void save(String entityName, Object entity) throws ServiceLayerException;
 
@@ -14,4 +15,5 @@ public interface CatalogueService {
 
     void update(String entityName, String id, Object o) throws ServiceLayerException;
 
+    void changeStatus(String entityName, String id, Object entity) throws ServiceLayerException;;
 }

@@ -15,6 +15,7 @@ import com.revoktek.reysol.dto.PedidoDTO;
 import com.revoktek.reysol.dto.PedidoProductoDTO;
 import com.revoktek.reysol.dto.ProductoDTO;
 import com.revoktek.reysol.dto.TipoCorteDTO;
+import com.revoktek.reysol.dto.TipoInventarioDTO;
 import com.revoktek.reysol.dto.UnidadMedidaDTO;
 import com.revoktek.reysol.persistence.entities.ProductoCancelacion;
 import com.revoktek.reysol.persistence.entities.Cliente;
@@ -28,6 +29,7 @@ import com.revoktek.reysol.persistence.entities.PedidoProducto;
 import com.revoktek.reysol.persistence.entities.PrecioCliente;
 import com.revoktek.reysol.persistence.entities.Producto;
 import com.revoktek.reysol.persistence.entities.TipoCorte;
+import com.revoktek.reysol.persistence.entities.TipoInventario;
 import com.revoktek.reysol.persistence.entities.TipoMovimiento;
 import com.revoktek.reysol.persistence.entities.UnidadMedida;
 import com.revoktek.reysol.persistence.repositories.CorteRepository;
@@ -82,7 +84,7 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
             }
             log.info("{} elementos encontrados.", pedidoProductos.size());
 
-            List<PedidoProductoDTO> dtoList = pedidoProductos.parallelStream().map(pedidoProducto -> {
+            List<PedidoProductoDTO> dtoList = pedidoProductos.stream().map(pedidoProducto -> {
 
                 ProductoDTO productoDTO = null;
                 Producto producto = pedidoProducto.getProducto();
@@ -141,6 +143,25 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
 
                     corteDTO.setTipoCorte(tipoCorteDTO);
                 }
+                Inventario inventario = pedidoProducto.getInventario();
+                InventarioDTO  inventarioDTO = null;
+                if(applicationUtil.nonNull(inventario)) {
+                    inventarioDTO = new InventarioDTO();
+                    inventarioDTO.setIdInventario(inventario.getIdInventario());
+                    inventarioDTO.setCantidad(inventario.getCantidad());
+                    inventarioDTO.setPeso(inventario.getPeso());
+                    inventarioDTO.setFechaModificacion(inventario.getFechaModificacion());
+                    inventarioDTO.setProducto(productoDTO);
+
+                    TipoInventario tipoInventario = inventario.getTipoInventario();
+                    TipoInventarioDTO tipoInventarioDTO = new TipoInventarioDTO();
+                    tipoInventarioDTO.setIdTipoInventario(tipoInventario.getIdTipoInventario());
+                    tipoInventarioDTO.setNombre(tipoInventario.getNombre());
+                    tipoInventarioDTO.setDescripcion(tipoInventario.getDescripcion());
+                    tipoInventarioDTO.setEstatus(tipoInventario.getEstatus());
+
+                    inventarioDTO.setTipoInventario(tipoInventarioDTO);
+                }
 
 
                 return PedidoProductoDTO.builder()
@@ -154,10 +175,10 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
                         .pesoSolicitado(pedidoProducto.getPesoSolicitado())
                         .pesoDespachado(pedidoProducto.getPesoDespachado())
                         .pesoEntregado(pedidoProducto.getPesoEntregado())
-                        .cantidadFrias(pedidoProducto.getCantidadFrias())
                         .subtotal(pedidoProducto.getSubtotal())
                         .diferencia(pedidoProducto.getDiferencia())
                         .tipoPrecio(pedidoProducto.getTipoPrecio())
+                        .inventario(inventarioDTO)
                         .producto(productoDTO)
                         .corte(corteDTO)
                         .build();
@@ -285,7 +306,6 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
                 pedidoProducto.setPesoSolicitado(productoDTO.getPesoSolicitado());
                 pedidoProducto.setPesoDespachado(productoDTO.getPesoSolicitado());
                 pedidoProducto.setPesoEntregado(productoDTO.getPesoSolicitado());
-                pedidoProducto.setCantidadFrias(productoDTO.getCantidadFrias());
                 pedidoProducto.setPedido(pedido);
                 pedidoProducto.setProducto(producto);
                 pedidoProducto.setInventario(inventario);
@@ -410,10 +430,15 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
                 Optional<CorteHistorial> corteHistorial = corteHistorialRepository.findAllByCorteOrderByFechaRegistroDesc(corte).stream().findFirst();
 
 
+                Integer idTipoInventario = getTipoInventario(productoDTO);
+
+                InventarioDTO inventarioDTO = inventarioService.findOrSaveByProductoAndTipoInventario(producto.getIdProducto(), idTipoInventario, idEmpleado);
+                Inventario inventario = inventarioRepository.findByIdInventario(inventarioDTO.getIdInventario());
+
+
                 PedidoProducto pedidoProducto = new PedidoProducto();
                 pedidoProducto.setEstatus(Boolean.TRUE);
                 pedidoProducto.setSubtotal(BigDecimal.ZERO);
-                pedidoProducto.setCantidadFrias(productoDTO.getCantidadFrias());
                 pedidoProducto.setCantidadSolicitada(productoDTO.getCantidadSolicitada());
                 pedidoProducto.setPesoSolicitado(productoDTO.getPesoSolicitado());
                 pedidoProducto.setCantidadDespachada(BigDecimal.ZERO);
@@ -422,6 +447,7 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
                 pedidoProducto.setPesoEntregado(BigDecimal.ZERO);
                 pedidoProducto.setPedido(pedido);
                 pedidoProducto.setProducto(producto);
+                pedidoProducto.setInventario(inventario);
                 pedidoProducto.setCorteHistorial(corteHistorial.orElse(null));
                 pedidoProducto.setCorte(corte);
                 pedidoProducto.setEstatus(Boolean.TRUE);
@@ -460,9 +486,12 @@ public class PedidoProductoServiceImpl implements PedidoProductoService {
 
 
             return total;
+        } catch (ServiceLayerException e) {
+            log.error(e.getMessage());
+            throw e;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            throw new ServiceLayerException(e);
+            throw new ServiceLayerException("Error al guardar el producto del pedido.");
         }
     }
 

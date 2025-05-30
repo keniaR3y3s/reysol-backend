@@ -26,8 +26,9 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
                             ILIKE CONCAT('%', :busqueda, '%')
                  ) OR ( e.alias  ILIKE CONCAT('%', :busqueda, '%')  ) )
                              AND ( (:estatus IS NULL) OR (e.estatus = :estatus) )
+                             AND ( (:idTipoCliente IS NULL) OR (tipoCliente.idTipoCliente = :idTipoCliente) )
                 ORDER BY e.alias ASC
             """)
-    List<Cliente> findAllByFilter(@Param("busqueda") String busqueda, @Param("estatus") Integer estatus);
+    List<Cliente> findAllByFilter(@Param("busqueda") String busqueda, @Param("estatus") Integer estatus, @Param("idTipoCliente") Integer idTipoCliente);
 
 }

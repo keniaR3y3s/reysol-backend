@@ -8,7 +8,7 @@ import com.revoktek.reysol.dto.ClienteDTO;
 public interface ClienteService {
 
 
-    List<ClienteDTO> findAllByFilter(String busqueda, Integer estatus) throws ServiceLayerException;
+    List<ClienteDTO> findAllByFilter(String busqueda, Integer estatus, Integer idTipoCliente) throws ServiceLayerException;
 
     ClienteDTO findById(Long idCliente) throws ServiceLayerException;
 

@@ -38,8 +38,6 @@ public class PedidoProducto {
     @Column(name = "diferencia")
     private BigDecimal diferencia;
 
-    @Column(name = "cantidad_frias")
-    private BigDecimal cantidadFrias;
 
     @Column(name = "cantidad_solicitada")
     private BigDecimal cantidadSolicitada;

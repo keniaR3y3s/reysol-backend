@@ -29,6 +29,11 @@ public class CatalogoController {
         return ResponseEntity.ok(iCatalogueService.findAll(entityName));
     }
 
+    @GetMapping(CataloguePath.FIND_ALL_ACTIVE)
+    public ResponseEntity<?> findAllActive(@PathVariable String entityName) throws ServiceLayerException {
+        return ResponseEntity.ok(iCatalogueService.findAllActive(entityName));
+    }
+
     @PutMapping(CataloguePath.SAVE)
     @ResponseStatus(HttpStatus.CREATED)
     public void save(@PathVariable String entityName, @RequestBody Object entity) throws ServiceLayerException {
@@ -46,6 +51,12 @@ public class CatalogoController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void update(@PathVariable String entityName, @PathVariable String id, @RequestBody Object entity) throws ServiceLayerException {
         iCatalogueService.update(entityName, id, entity);
+    }
+
+    @PostMapping(CataloguePath.CHANGE_STATUS)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void changeStatus(@PathVariable String entityName, @PathVariable String id, @RequestBody Object entity) throws ServiceLayerException {
+        iCatalogueService.changeStatus(entityName, id, entity);
     }
 
 

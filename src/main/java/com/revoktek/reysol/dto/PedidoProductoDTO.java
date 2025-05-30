@@ -20,7 +20,6 @@ public class PedidoProductoDTO {
     private Integer tipoPrecio;
     private BigDecimal precio;
     private BigDecimal subtotal;
-    private BigDecimal cantidadFrias;
 
     private BigDecimal cantidadSolicitada;
     private BigDecimal cantidadDespachada;

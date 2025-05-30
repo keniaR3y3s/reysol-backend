@@ -4,6 +4,8 @@ import com.revoktek.reysol.core.enums.TipoInventarioEnum;
 import com.revoktek.reysol.core.enums.TipoMovimientoEnum;
 import com.revoktek.reysol.core.exceptions.ServiceLayerException;
 import com.revoktek.reysol.core.utils.ApplicationUtil;
+import com.revoktek.reysol.core.utils.MapperUtil;
+import com.revoktek.reysol.dto.EmpleadoDTO;
 import com.revoktek.reysol.dto.InventarioDTO;
 import com.revoktek.reysol.dto.InventarioHistorialDTO;
 import com.revoktek.reysol.dto.ProductoDTO;
@@ -46,6 +48,7 @@ public class InventarioServiceImpl implements InventarioService {
     private final InventarioRepository inventarioRepository;
     private final TipoInventarioRepository tipoInventarioRepository;
     private final InventarioHistorialRepository inventarioHistorialRepository;
+    private final MapperUtil mapperUtil;
 
 
     @Override
@@ -118,6 +121,7 @@ public class InventarioServiceImpl implements InventarioService {
                         .build();
 
                 inventarioDTO.setProducto(productoDTO);
+                inventarioDTO.setTipoInventario(mapperUtil.parseBetweenObject(TipoInventarioDTO.class, inventario.getTipoInventario()));
 
 
                 if (applicationUtil.nonNull(producto.getUnidadMedida())) {
@@ -196,6 +200,7 @@ public class InventarioServiceImpl implements InventarioService {
                 InventarioDTO inventarioDTO = InventarioDTO.builder()
                         .idInventario(inventario.getIdInventario())
                         .build();
+                inventarioDTO.setTipoInventario(mapperUtil.parseBetweenObject(TipoInventarioDTO.class, inventario.getTipoInventario()));
 
                 inventarioHistorialDTO.setInventario(inventarioDTO);
 
@@ -219,6 +224,14 @@ public class InventarioServiceImpl implements InventarioService {
                     productoDTO.setUnidadMedida(unidadMedidaDTO);
                 }
 
+                Empleado empleado = inventarioHistorial.getEmpleado();
+                EmpleadoDTO empleadoDTO = EmpleadoDTO.builder().
+                    idEmpleado(empleado.getIdEmpleado()).
+                        nombre(empleado.getNombre()).
+                        primerApellido(empleado.getPrimerApellido()).
+                        segundoApellido(empleado.getSegundoApellido())
+                .build();
+                inventarioHistorialDTO.setEmpleado(empleadoDTO);
 
                 return inventarioHistorialDTO;
             }).toList();
@@ -235,16 +248,18 @@ public class InventarioServiceImpl implements InventarioService {
     public void save(InventarioDTO inventarioDTO, String token) throws ServiceLayerException {
         try {
 
+            log.info("Datos del front save.inventarioDTO : {}", applicationUtil.toJson(inventarioDTO));
+
             Date now = new Date();
             ProductoDTO productoDTO = inventarioDTO.getProducto();
             Long idProducto = productoDTO.getIdProducto();
 
             Integer idTipoInventario = TipoInventarioEnum.FRESCO.getValue();
-            /*if (applicationUtil.nonNull(inventarioDTO.getTipoInventario())
+            if (applicationUtil.nonNull(inventarioDTO.getTipoInventario())
                     && applicationUtil.nonNull(inventarioDTO.getTipoInventario().getIdTipoInventario())
             ) {
                 idTipoInventario = inventarioDTO.getTipoInventario().getIdTipoInventario();
-            }*/
+            }
 
             Integer idTipoMovimiento = TipoMovimientoEnum.ENTRADA.getValue();
             /*if (applicationUtil.nonNull(inventarioDTO.getTipoMovimiento())
@@ -272,7 +287,7 @@ public class InventarioServiceImpl implements InventarioService {
             inventario.setFechaModificacion(now);
             if (Objects.equals(idTipoMovimiento, TipoMovimientoEnum.ENTRADA.getValue())) {
                 inventario.setCantidad(inventario.getCantidad().add(inventarioDTO.getCantidad()));
-                inventario.setPeso(inventario.getCantidad().add(inventarioDTO.getPeso()));
+                inventario.setPeso(inventario.getPeso().add(inventarioDTO.getPeso()));
                 inventarioRepository.save(inventario);
 
 
@@ -286,7 +301,7 @@ public class InventarioServiceImpl implements InventarioService {
                 inventarioHistorialRepository.save(inventarioHistorial);
             } else {
                 inventario.setCantidad(inventario.getCantidad().subtract(inventarioDTO.getCantidad()));
-                inventario.setPeso(inventario.getCantidad().subtract(inventarioDTO.getPeso()));
+                inventario.setPeso(inventario.getPeso().subtract(inventarioDTO.getPeso()));
                 inventarioRepository.save(inventario);
 
                 InventarioHistorial inventarioHistorial = new InventarioHistorial();

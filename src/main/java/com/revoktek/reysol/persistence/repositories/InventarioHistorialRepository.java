@@ -15,7 +15,8 @@ public interface InventarioHistorialRepository extends JpaRepository<InventarioH
             FROM InventarioHistorial inventarioHistorial
             INNER JOIN FETCH inventarioHistorial.tipoMovimiento tipoMovimiento
             INNER JOIN FETCH inventarioHistorial.inventario inventario
-            LEFT JOIN FETCH inventario.tipoInventario tipoInventario
+            INNER JOIN FETCH inventarioHistorial.empleado empleado
+            INNER JOIN FETCH inventario.tipoInventario tipoInventario
             INNER JOIN FETCH inventario.producto producto
             LEFT JOIN FETCH producto.unidadMedida unidadMedida
             WHERE

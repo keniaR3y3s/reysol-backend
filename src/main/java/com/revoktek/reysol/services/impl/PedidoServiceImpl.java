@@ -516,9 +516,12 @@ public class PedidoServiceImpl implements PedidoService {
 
             cuentaService.updateSaldo(cliente.getIdCliente());
 
+        } catch (ServiceLayerException e) {
+            log.error(e.getMessage());
+            throw e;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            throw new ServiceLayerException(e);
+            throw new ServiceLayerException("Error al guardar el pedido.");
         }
     }
 
