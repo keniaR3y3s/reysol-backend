@@ -9,6 +9,7 @@ import com.revoktek.reysol.persistence.repositories.EmpleadoRepository;
 import com.revoktek.reysol.persistence.repositories.UsuarioRepository;
 import com.revoktek.reysol.services.JwtService;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -123,15 +124,20 @@ public class JwtServiceImpl implements JwtService {
 
     private String buildToken(Usuario usuario, Long expirationMilis) {
         Date now = new Date(System.currentTimeMillis());
-        Date expiration = new Date(System.currentTimeMillis() + expirationMilis);
-        return Jwts.builder().
-                id(usuario.getIdUsuario().toString())
+
+        JwtBuilder builder = Jwts.builder()
+                .id(usuario.getIdUsuario().toString())
                 .claims(Map.of("usuario", usuario.getUsuario()))
                 .subject(usuario.getUsuario())
                 .issuedAt(now)
-                .expiration(expiration)
-                .signWith(getSignKey())
-                .compact();
+                .signWith(getSignKey());
+
+        if (expirationMilis != null && expirationMilis > 0) {
+            Date expiration = new Date(System.currentTimeMillis() + expirationMilis);
+            builder.expiration(expiration);
+        }
+
+        return builder.compact();
     }
 
     private SecretKey getSignKey() {

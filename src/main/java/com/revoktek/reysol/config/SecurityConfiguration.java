@@ -1,5 +1,6 @@
 package com.revoktek.reysol.config;
 
+import com.revoktek.reysol.core.constants.request.AuthPath;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,9 +28,9 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req -> req
-//                        .requestMatchers(AuthPath.CONTROLLER + "/**").permitAll()
-//                        .requestMatchers(AuthPath.CONTROLLER + "/**").permitAll()
-                        .anyRequest().permitAll()
+                        .requestMatchers(AuthPath.CONTROLLER + "/**").permitAll()
+                        .requestMatchers(AuthPath.CONTROLLER + "/**").permitAll()
+                        .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)

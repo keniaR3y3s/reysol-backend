@@ -160,17 +160,14 @@ public class ClienteServiceImpl implements ClienteService {
 
             log.info("Datos front save.clienteDTO : {}", applicationUtil.toJson(clienteDTO));
 
-            if(applicationUtil.isEmpty(clienteDTO.getAlias())){
-                clienteDTO.setAlias(clienteDTO.getNombre() );
-            }
-            Cliente cliente = clienteRepository.findByAlias(clienteDTO.getAlias());
-            if (applicationUtil.nonNull(cliente)) {
-                throw new ServiceLayerException("Alias registrado previamente");
+            boolean isAliasSystem = applicationUtil.isEmpty(clienteDTO.getAlias());
+            if(isAliasSystem) {
+                clienteDTO.setAlias(System.currentTimeMillis() + "");
             }
 
             TipoCliente tipoCliente = new TipoCliente(TipoClienteEnum.REGULAR.getValue());
 
-            cliente = mapperUtil.parseBetweenObject(Cliente.class, clienteDTO);
+            Cliente cliente = mapperUtil.parseBetweenObject(Cliente.class, clienteDTO);
             cliente.setIdCliente(null);
             cliente.setEstatus(EstatusClienteEnum.ACTIVO.getValue());
             cliente.setFechaRegistro(new Date());
@@ -183,6 +180,10 @@ public class ClienteServiceImpl implements ClienteService {
                 cliente.setRuta(new Ruta(clienteDTO.getRuta().getIdRuta()));
             }
             clienteRepository.save(cliente);
+            if(isAliasSystem) {
+                cliente.setAlias(generateAlias(cliente.getIdCliente()));
+                clienteRepository.save(cliente);
+            }
 
             if (applicationUtil.nonNull(clienteDTO.getContacto()) && applicationUtil.nonEmpty(clienteDTO.getContacto().getTelefono())) {
                 Contacto contacto = new Contacto();
@@ -211,18 +212,12 @@ public class ClienteServiceImpl implements ClienteService {
     @Transactional
     public void update(ClienteDTO clienteDTO) throws ServiceLayerException {
         try {
+
             log.info("Datos front update.clienteDTO : {}", applicationUtil.toJson(clienteDTO));
 
-            if(applicationUtil.isEmpty(clienteDTO.getAlias())){
-                clienteDTO.setAlias(clienteDTO.getNombre() );
-            }
-            Cliente cliente = clienteRepository.findByAliasAndIdClienteNot(clienteDTO.getAlias(), clienteDTO.getIdCliente());
-            if (applicationUtil.nonNull(cliente)) {
-                throw new ServiceLayerException("Alias registrado previamente");
-            }
-
-            cliente = clienteRepository.findByIdCliente(clienteDTO.getIdCliente());
-            cliente.setAlias(cliente.getAlias());
+            String alias = applicationUtil.isEmpty(clienteDTO.getAlias()) ? generateAlias(clienteDTO.getIdCliente()) : clienteDTO.getAlias();
+            Cliente cliente = clienteRepository.findByIdCliente(clienteDTO.getIdCliente());
+            cliente.setAlias(alias);
             cliente.setEstatus(clienteDTO.getEstatus());
             cliente.setNombre(clienteDTO.getNombre());
             cliente.setPrimerApellido(clienteDTO.getPrimerApellido());
@@ -278,8 +273,7 @@ public class ClienteServiceImpl implements ClienteService {
 
             clienteRepository.save(cliente);
 
-            String alias = "EXTEMPORÁNEO-" + cliente.getIdCliente();
-            cliente.setAlias(alias);
+            cliente.setAlias(String.format("EXT-%04d", cliente.getIdCliente()));
 
             clienteRepository.save(cliente);
 
@@ -290,4 +284,9 @@ public class ClienteServiceImpl implements ClienteService {
             throw new ServiceLayerException(e);
         }
     }
+
+    private String generateAlias(Long idCliente) {
+        return String.format("CLT-%04d", idCliente);
+    }
+
 }

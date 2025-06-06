@@ -8,6 +8,12 @@ spring:
     url: jdbc:mysql://localhost:3306/reysol_prod?allowPublicKeyRetrieval=true&useSSL=false
     username: mediuser
     password: Medi2022
+#    url: jdbc:mysql://localhost:3306/cpclub_reysol?allowPublicKeyRetrieval=true&useSSL=false
+#    username: cpclub_reysol
+#    password: $vDlep@yC2%2025**
+#    url: jdbc:mysql://localhost:3306/reysol_prod?allowPublicKeyRetrieval=true&useSSL=false
+#    username: mediuser
+#    password: Medi2022    
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
